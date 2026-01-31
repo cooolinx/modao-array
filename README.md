@@ -5,6 +5,7 @@
 - 入口文件：index.html
 - 运行方式：使用任意静态服务器或直接用浏览器打开 index.html
 - 操作说明：点击 “Build Tower” 进入建造模式，点击格子放置，点击 “Start Wave” 开始下一波
+- 图片资源：assets/tower.svg、assets/enemy.svg
 
 ## 故事背景
 

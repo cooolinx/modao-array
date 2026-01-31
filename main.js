@@ -14,6 +14,11 @@ const config = {
   gridHeight: 9,
 };
 
+const assetUrls = {
+  tower: "assets/tower.svg",
+  enemy: "assets/enemy.svg",
+};
+
 const boardWidth = config.tileSize * config.gridWidth;
 const boardHeight = config.tileSize * config.gridHeight;
 
@@ -61,6 +66,12 @@ await app.init({
   autoDensity: true,
 });
 root.appendChild(app.canvas);
+
+await PIXI.Assets.load([assetUrls.tower, assetUrls.enemy]);
+const textures = {
+  tower: PIXI.Texture.from(assetUrls.tower),
+  enemy: PIXI.Texture.from(assetUrls.enemy),
+};
 
 const boardContainer = new PIXI.Container();
 boardContainer.eventMode = "static";
@@ -225,13 +236,13 @@ function spawnEnemy() {
     isRemoved: false,
   };
 
-  const body = new PIXI.Graphics();
-  body.beginFill(0xe85d5d);
-  body.drawCircle(0, 0, 14);
-  body.endFill();
+  const body = new PIXI.Sprite(textures.enemy);
+  body.anchor.set(0.5);
+  body.width = 36;
+  body.height = 36;
   enemy.sprite.addChild(body);
 
-  enemy.hpBar.y = -22;
+  enemy.hpBar.y = -26;
   enemy.sprite.addChild(enemy.hpBar);
   updateEnemyHpBar(enemy);
 
@@ -409,17 +420,11 @@ function createTower(cell) {
   rangeRing.drawCircle(0, 0, towerRange);
   towerContainer.addChild(rangeRing);
 
-  const base = new PIXI.Graphics();
-  base.beginFill(0x4caf50);
-  base.drawRoundedRect(-18, -18, 36, 36, 6);
-  base.endFill();
-  towerContainer.addChild(base);
-
-  const barrel = new PIXI.Graphics();
-  barrel.beginFill(0x1f7a3f);
-  barrel.drawRect(-5, -28, 10, 18);
-  barrel.endFill();
-  towerContainer.addChild(barrel);
+  const towerSprite = new PIXI.Sprite(textures.tower);
+  towerSprite.anchor.set(0.5);
+  towerSprite.width = 52;
+  towerSprite.height = 52;
+  towerContainer.addChild(towerSprite);
 
   towersLayer.addChild(towerContainer);
 
