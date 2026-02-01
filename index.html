@@ -10,7 +10,28 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="game-root">
+    <!-- 游戏开始页面 -->
+    <div id="start-screen">
+      <div class="start-container">
+        <div class="cover-image-wrapper">
+          <img src="assets/IMG_0658.png" alt="游戏封面" class="cover-image" />
+        </div>
+        <h1 class="game-title">塔防传奇</h1>
+        <p class="game-subtitle">守护你的领地，击退敌人</p>
+        <button id="start-game-btn" class="start-button">
+          <span class="button-text">开始游戏</span>
+          <span class="button-icon">→</span>
+        </button>
+        <div class="game-instructions">
+          <p>🎯 点击格子放置防御塔</p>
+          <p>⚔️ 击退敌人获得金币</p>
+          <p>🛡️ 保护你的生命值</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div id="game-root" class="hidden">
       <button id="toggle-ui" class="ui-toggle" aria-expanded="true">
         收起面板
       </button>
