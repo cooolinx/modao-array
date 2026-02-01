@@ -7,11 +7,13 @@ const waveEl = document.getElementById("wave");
 const statusEl = document.getElementById("status");
 const buildButton = document.getElementById("build-tower");
 const startWaveButton = document.getElementById("start-wave");
+const toggleUiButton = document.getElementById("toggle-ui");
+const gameUi = document.getElementById("game-ui");
 
 const config = {
   tileSize: 64,
-  gridWidth: 12,
-  gridHeight: 9,
+  gridWidth: 24,
+  gridHeight: 18,
 };
 
 const assetUrls = {
@@ -35,6 +37,7 @@ const state = {
   isPlacing: false,
   waveInProgress: false,
   gameOver: false,
+  uiCollapsed: false,
   enemiesToSpawn: 0,
   spawnInterval: 0.8,
   spawnTimer: 0,
@@ -44,12 +47,12 @@ const state = {
 };
 
 const pathNodes = [
-  { x: 0, y: 4 },
-  { x: 3, y: 4 },
-  { x: 3, y: 1 },
-  { x: 8, y: 1 },
-  { x: 8, y: 6 },
-  { x: 11, y: 6 },
+  { x: 0, y: 8 },
+  { x: 6, y: 8 },
+  { x: 6, y: 2 },
+  { x: 16, y: 2 },
+  { x: 16, y: 12 },
+  { x: 22, y: 12 },
 ];
 
 const pathCells = buildPathCells(pathNodes);
@@ -148,6 +151,14 @@ buildButton.addEventListener("click", () => {
   setBuildMode(!state.isPlacing);
 });
 
+toggleUiButton.addEventListener("click", () => {
+  state.uiCollapsed = !state.uiCollapsed;
+  root.classList.toggle("ui-collapsed", state.uiCollapsed);
+  toggleUiButton.textContent = state.uiCollapsed ? "展开面板" : "收起面板";
+  toggleUiButton.setAttribute("aria-expanded", String(!state.uiCollapsed));
+  layoutBoard();
+});
+
 startWaveButton.addEventListener("click", () => {
   if (state.gameOver) {
     return;
@@ -174,8 +185,31 @@ app.ticker.add(() => {
 
 function layoutBoard() {
   app.renderer.resize(window.innerWidth, window.innerHeight);
-  boardContainer.x = Math.round((app.screen.width - boardWidth) / 2);
-  boardContainer.y = Math.round((app.screen.height - boardHeight) / 2);
+  const horizontalPadding = 16;
+  const verticalPadding = 16;
+  const uiGap = 12;
+  const uiHeight = state.uiCollapsed
+    ? 0
+    : gameUi.getBoundingClientRect().height;
+  const topInset = (uiHeight ? uiHeight + uiGap : 0) + verticalPadding;
+  const availableWidth = Math.max(0, app.screen.width - horizontalPadding * 2);
+  const availableHeight = Math.max(
+    0,
+    app.screen.height - topInset - verticalPadding
+  );
+  const scale = Math.min(
+    availableWidth / boardWidth,
+    availableHeight / boardHeight,
+    1
+  );
+
+  boardContainer.scale.set(scale);
+  const scaledWidth = boardWidth * scale;
+  const scaledHeight = boardHeight * scale;
+  boardContainer.x = Math.round((app.screen.width - scaledWidth) / 2);
+  boardContainer.y = Math.round(
+    topInset + (availableHeight - scaledHeight) / 2
+  );
 }
 
 function updateGame(deltaSec) {

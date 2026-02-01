@@ -37,6 +37,31 @@ canvas {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(6px);
+  z-index: 10;
+}
+
+.ui-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 12;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(44, 107, 237, 0.92);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+#game-root.ui-collapsed #game-ui {
+  display: none;
+}
+
+#game-root.ui-collapsed .ui-toggle {
+  background: rgba(59, 63, 74, 0.9);
 }
 
 .stats {
@@ -74,6 +99,18 @@ button:disabled {
 button:not(:disabled):hover {
   transform: translateY(-1px);
   background: #3d7bff;
+}
+
+button.ui-toggle {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(44, 107, 237, 0.92);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+}
+
+button.ui-toggle:hover {
+  background: rgba(61, 123, 255, 0.95);
 }
 
 #status {
