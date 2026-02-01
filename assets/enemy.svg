@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="robe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6c3544" />
+      <stop offset="100%" stop-color="#3a1c26" />
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#ff9fb5" stroke-opacity="0.12" stroke-width="6" />
+  <path d="M38 106 L90 106 L80 58 L48 58 Z" fill="url(#robe)" stroke="#f0a5b7" stroke-width="3" />
+  <rect x="52" y="44" width="24" height="22" rx="6" fill="#7a3b4a" />
+  <circle cx="64" cy="32" r="12" fill="#f2d9c6" stroke="#d2a9a9" stroke-width="3" />
+  <path d="M44 52 L34 28" stroke="#b9d4ff" stroke-width="4" stroke-linecap="round" />
+  <circle cx="34" cy="28" r="6" fill="#84c7ff" stroke="#dff2ff" stroke-width="2" />
+</svg>

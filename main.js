@@ -1,5 +1,7 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
 
+const startScreen = document.getElementById("start-screen");
+const startGameBtn = document.getElementById("start-game-btn");
 const root = document.getElementById("game-root");
 const goldEl = document.getElementById("gold");
 const livesEl = document.getElementById("lives");
@@ -7,11 +9,18 @@ const waveEl = document.getElementById("wave");
 const statusEl = document.getElementById("status");
 const buildButton = document.getElementById("build-tower");
 const startWaveButton = document.getElementById("start-wave");
+const toggleUiButton = document.getElementById("toggle-ui");
+const gameUi = document.getElementById("game-ui");
 
 const config = {
   tileSize: 64,
-  gridWidth: 12,
-  gridHeight: 9,
+  gridWidth: 24,
+  gridHeight: 18,
+};
+
+const assetUrls = {
+  tower: "assets/tower.svg",
+  enemy: "assets/enemy.svg",
 };
 
 const boardWidth = config.tileSize * config.gridWidth;
@@ -30,6 +39,7 @@ const state = {
   isPlacing: false,
   waveInProgress: false,
   gameOver: false,
+  uiCollapsed: false,
   enemiesToSpawn: 0,
   spawnInterval: 0.8,
   spawnTimer: 0,
@@ -39,132 +49,219 @@ const state = {
 };
 
 const pathNodes = [
-  { x: 0, y: 4 },
-  { x: 3, y: 4 },
-  { x: 3, y: 1 },
-  { x: 8, y: 1 },
-  { x: 8, y: 6 },
-  { x: 11, y: 6 },
+  { x: 0, y: 8 },
+  { x: 6, y: 8 },
+  { x: 6, y: 2 },
+  { x: 16, y: 2 },
+  { x: 16, y: 12 },
+  { x: 22, y: 12 },
 ];
+
+function buildPathCells(nodes) {
+  const cells = [];
+  for (let i = 0; i < nodes.length - 1; i += 1) {
+    const start = nodes[i];
+    const end = nodes[i + 1];
+    const stepX = Math.sign(end.x - start.x);
+    const stepY = Math.sign(end.y - start.y);
+    let x = start.x;
+    let y = start.y;
+
+    if (i === 0) {
+      cells.push({ x, y });
+    }
+
+    while (x !== end.x || y !== end.y) {
+      x += stepX;
+      y += stepY;
+      cells.push({ x, y });
+    }
+  }
+  return cells;
+}
+
+function cellCenter(cell) {
+  return {
+    x: cell.x * config.tileSize + config.tileSize / 2,
+    y: cell.y * config.tileSize + config.tileSize / 2,
+  };
+}
 
 const pathCells = buildPathCells(pathNodes);
 const pathKeySet = new Set(pathCells.map((cell) => `${cell.x},${cell.y}`));
 const pathWaypoints = pathCells.map((cell) => cellCenter(cell));
 
-const app = new PIXI.Application();
-await app.init({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  background: 0x101318,
-  antialias: true,
-  resolution: window.devicePixelRatio || 1,
-  autoDensity: true,
+let app;
+let boardContainer;
+let towersLayer;
+let enemiesLayer;
+let bulletsLayer;
+let placementHighlight;
+let textures;
+
+// 开始游戏按钮点击事件
+startGameBtn.addEventListener("click", async () => {
+  // 隐藏开始页面，显示游戏界面
+  startScreen.classList.add("hidden");
+  root.classList.remove("hidden");
+  
+  // 初始化游戏
+  await initGame();
 });
-root.appendChild(app.canvas);
 
-const boardContainer = new PIXI.Container();
-boardContainer.eventMode = "static";
-boardContainer.interactive = true;
-boardContainer.hitArea = new PIXI.Rectangle(0, 0, boardWidth, boardHeight);
-app.stage.addChild(boardContainer);
+async function initGame() {
+  app = new PIXI.Application();
+  await app.init({
+    width: window.innerWidth,
+    height: window.innerHeight,
+    background: 0x101318,
+    antialias: true,
+    resolution: window.devicePixelRatio || 1,
+    autoDensity: true,
+  });
+  root.appendChild(app.canvas);
 
-const background = new PIXI.Graphics();
-background.beginFill(0x1b1f26);
-background.drawRect(0, 0, boardWidth, boardHeight);
-background.endFill();
-boardContainer.addChild(background);
+  await PIXI.Assets.load([assetUrls.tower, assetUrls.enemy]);
+  textures = {
+    tower: PIXI.Texture.from(assetUrls.tower),
+    enemy: PIXI.Texture.from(assetUrls.enemy),
+  };
 
-const pathGraphics = new PIXI.Graphics();
-pathGraphics.beginFill(0x2a303b);
-for (const cell of pathCells) {
-  pathGraphics.drawRect(
-    cell.x * config.tileSize,
-    cell.y * config.tileSize,
-    config.tileSize,
-    config.tileSize
-  );
-}
-pathGraphics.endFill();
-boardContainer.addChild(pathGraphics);
+  boardContainer = new PIXI.Container();
+  boardContainer.eventMode = "static";
+  boardContainer.interactive = true;
+  boardContainer.hitArea = new PIXI.Rectangle(0, 0, boardWidth, boardHeight);
+  app.stage.addChild(boardContainer);
 
-const gridGraphics = new PIXI.Graphics();
-gridGraphics.lineStyle(1, 0xffffff, 0.08);
-for (let x = 0; x <= config.gridWidth; x += 1) {
-  gridGraphics.moveTo(x * config.tileSize, 0);
-  gridGraphics.lineTo(x * config.tileSize, boardHeight);
-}
-for (let y = 0; y <= config.gridHeight; y += 1) {
-  gridGraphics.moveTo(0, y * config.tileSize);
-  gridGraphics.lineTo(boardWidth, y * config.tileSize);
-}
-boardContainer.addChild(gridGraphics);
+  const background = new PIXI.Graphics();
+  background.beginFill(0x1b1f26);
+  background.drawRect(0, 0, boardWidth, boardHeight);
+  background.endFill();
+  boardContainer.addChild(background);
 
-const startMarker = new PIXI.Graphics();
-startMarker.beginFill(0x3ecf8e);
-startMarker.drawCircle(0, 0, 8);
-startMarker.endFill();
-const startPos = pathWaypoints[0];
-startMarker.position.set(startPos.x, startPos.y);
-boardContainer.addChild(startMarker);
+  const pathGraphics = new PIXI.Graphics();
+  pathGraphics.beginFill(0x2a303b);
+  for (const cell of pathCells) {
+    pathGraphics.drawRect(
+      cell.x * config.tileSize,
+      cell.y * config.tileSize,
+      config.tileSize,
+      config.tileSize
+    );
+  }
+  pathGraphics.endFill();
+  boardContainer.addChild(pathGraphics);
 
-const endMarker = new PIXI.Graphics();
-endMarker.beginFill(0xffb347);
-endMarker.drawCircle(0, 0, 8);
-endMarker.endFill();
-const endPos = pathWaypoints[pathWaypoints.length - 1];
-endMarker.position.set(endPos.x, endPos.y);
-boardContainer.addChild(endMarker);
+  const gridGraphics = new PIXI.Graphics();
+  gridGraphics.lineStyle(1, 0xffffff, 0.08);
+  for (let x = 0; x <= config.gridWidth; x += 1) {
+    gridGraphics.moveTo(x * config.tileSize, 0);
+    gridGraphics.lineTo(x * config.tileSize, boardHeight);
+  }
+  for (let y = 0; y <= config.gridHeight; y += 1) {
+    gridGraphics.moveTo(0, y * config.tileSize);
+    gridGraphics.lineTo(boardWidth, y * config.tileSize);
+  }
+  boardContainer.addChild(gridGraphics);
 
-const towersLayer = new PIXI.Container();
-const enemiesLayer = new PIXI.Container();
-const bulletsLayer = new PIXI.Container();
-boardContainer.addChild(towersLayer, enemiesLayer, bulletsLayer);
+  const startMarker = new PIXI.Graphics();
+  startMarker.beginFill(0x3ecf8e);
+  startMarker.drawCircle(0, 0, 8);
+  startMarker.endFill();
+  const startPos = pathWaypoints[0];
+  startMarker.position.set(startPos.x, startPos.y);
+  boardContainer.addChild(startMarker);
 
-const placementHighlight = new PIXI.Graphics();
-placementHighlight.visible = false;
-boardContainer.addChild(placementHighlight);
+  const endMarker = new PIXI.Graphics();
+  endMarker.beginFill(0xffb347);
+  endMarker.drawCircle(0, 0, 8);
+  endMarker.endFill();
+  const endPos = pathWaypoints[pathWaypoints.length - 1];
+  endMarker.position.set(endPos.x, endPos.y);
+  boardContainer.addChild(endMarker);
 
-layoutBoard();
-window.addEventListener("resize", layoutBoard);
+  towersLayer = new PIXI.Container();
+  enemiesLayer = new PIXI.Container();
+  bulletsLayer = new PIXI.Container();
+  boardContainer.addChild(towersLayer, enemiesLayer, bulletsLayer);
 
-boardContainer.on("pointerdown", handleBoardPointerDown);
-boardContainer.on("pointermove", handleBoardPointerMove);
-boardContainer.on("pointerout", () => {
+  placementHighlight = new PIXI.Graphics();
   placementHighlight.visible = false;
-});
+  boardContainer.addChild(placementHighlight);
 
-buildButton.addEventListener("click", () => {
-  setBuildMode(!state.isPlacing);
-});
+  layoutBoard();
+  window.addEventListener("resize", layoutBoard);
 
-startWaveButton.addEventListener("click", () => {
-  if (state.gameOver) {
-    return;
-  }
-  if (state.waveInProgress) {
-    setStatus("Wave already running.");
-    return;
-  }
-  startWave();
-});
+  boardContainer.on("pointerdown", handleBoardPointerDown);
+  boardContainer.on("pointermove", handleBoardPointerMove);
+  boardContainer.on("pointerout", () => {
+    placementHighlight.visible = false;
+  });
 
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    setBuildMode(false);
-  }
-});
+  buildButton.addEventListener("click", () => {
+    setBuildMode(!state.isPlacing);
+  });
 
-updateUI();
-updateButtons();
+  toggleUiButton.addEventListener("click", () => {
+    state.uiCollapsed = !state.uiCollapsed;
+    root.classList.toggle("ui-collapsed", state.uiCollapsed);
+    toggleUiButton.textContent = state.uiCollapsed ? "展开面板" : "收起面板";
+    toggleUiButton.setAttribute("aria-expanded", String(!state.uiCollapsed));
+    layoutBoard();
+  });
 
-app.ticker.add(() => {
-  updateGame(app.ticker.deltaMS / 1000);
-});
+  startWaveButton.addEventListener("click", () => {
+    if (state.gameOver) {
+      return;
+    }
+    if (state.waveInProgress) {
+      setStatus("Wave already running.");
+      return;
+    }
+    startWave();
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setBuildMode(false);
+    }
+  });
+
+  updateUI();
+  updateButtons();
+
+  app.ticker.add(() => {
+    updateGame(app.ticker.deltaMS / 1000);
+  });
+}
 
 function layoutBoard() {
   app.renderer.resize(window.innerWidth, window.innerHeight);
-  boardContainer.x = Math.round((app.screen.width - boardWidth) / 2);
-  boardContainer.y = Math.round((app.screen.height - boardHeight) / 2);
+  const horizontalPadding = 16;
+  const verticalPadding = 16;
+  const uiGap = 12;
+  const uiHeight = state.uiCollapsed
+    ? 0
+    : gameUi.getBoundingClientRect().height;
+  const topInset = (uiHeight ? uiHeight + uiGap : 0) + verticalPadding;
+  const availableWidth = Math.max(0, app.screen.width - horizontalPadding * 2);
+  const availableHeight = Math.max(
+    0,
+    app.screen.height - topInset - verticalPadding
+  );
+  const scale = Math.min(
+    availableWidth / boardWidth,
+    availableHeight / boardHeight,
+    1
+  );
+
+  boardContainer.scale.set(scale);
+  const scaledWidth = boardWidth * scale;
+  const scaledHeight = boardHeight * scale;
+  boardContainer.x = Math.round((app.screen.width - scaledWidth) / 2);
+  boardContainer.y = Math.round(
+    topInset + (availableHeight - scaledHeight) / 2
+  );
 }
 
 function updateGame(deltaSec) {
@@ -225,13 +322,13 @@ function spawnEnemy() {
     isRemoved: false,
   };
 
-  const body = new PIXI.Graphics();
-  body.beginFill(0xe85d5d);
-  body.drawCircle(0, 0, 14);
-  body.endFill();
+  const body = new PIXI.Sprite(textures.enemy);
+  body.anchor.set(0.5);
+  body.width = 36;
+  body.height = 36;
   enemy.sprite.addChild(body);
 
-  enemy.hpBar.y = -22;
+  enemy.hpBar.y = -26;
   enemy.sprite.addChild(enemy.hpBar);
   updateEnemyHpBar(enemy);
 
@@ -409,17 +506,11 @@ function createTower(cell) {
   rangeRing.drawCircle(0, 0, towerRange);
   towerContainer.addChild(rangeRing);
 
-  const base = new PIXI.Graphics();
-  base.beginFill(0x4caf50);
-  base.drawRoundedRect(-18, -18, 36, 36, 6);
-  base.endFill();
-  towerContainer.addChild(base);
-
-  const barrel = new PIXI.Graphics();
-  barrel.beginFill(0x1f7a3f);
-  barrel.drawRect(-5, -28, 10, 18);
-  barrel.endFill();
-  towerContainer.addChild(barrel);
+  const towerSprite = new PIXI.Sprite(textures.tower);
+  towerSprite.anchor.set(0.5);
+  towerSprite.width = 52;
+  towerSprite.height = 52;
+  towerContainer.addChild(towerSprite);
 
   towersLayer.addChild(towerContainer);
 
@@ -563,34 +654,4 @@ function updateButtons() {
 
 function setStatus(text) {
   statusEl.textContent = text;
-}
-
-function buildPathCells(nodes) {
-  const cells = [];
-  for (let i = 0; i < nodes.length - 1; i += 1) {
-    const start = nodes[i];
-    const end = nodes[i + 1];
-    const stepX = Math.sign(end.x - start.x);
-    const stepY = Math.sign(end.y - start.y);
-    let x = start.x;
-    let y = start.y;
-
-    if (i === 0) {
-      cells.push({ x, y });
-    }
-
-    while (x !== end.x || y !== end.y) {
-      x += stepX;
-      y += stepY;
-      cells.push({ x, y });
-    }
-  }
-  return cells;
-}
-
-function cellCenter(cell) {
-  return {
-    x: cell.x * config.tileSize + config.tileSize / 2,
-    y: cell.y * config.tileSize + config.tileSize / 2,
-  };
 }
