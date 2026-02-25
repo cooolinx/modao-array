@@ -1,29 +1,47 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
+import { enemyTypes } from "../config.js";
 
 export class Enemy {
   /**
    * @param {Object} options
+   * @param {string} [options.enemyType] - 敌人类型（"soldier" | "fast" | "tank"）
    * @param {number} options.wave - 当前波次（影响属性强度）
    * @param {Object} options.textures - { enemy: PIXI.Texture }
    * @param {Array} options.pathWaypoints - 路径点数组
    */
-  constructor({ wave, textures, pathWaypoints }) {
-    this.type = "basic";
-    const maxHp = 40 + wave * 14;
+  constructor({ enemyType = "soldier", wave, textures, pathWaypoints }) {
+    const typeCfg = enemyTypes[enemyType] || enemyTypes.soldier;
+    this.type = typeCfg.type;
+    this.slowFactor = typeCfg.slowFactor || 0.5;
+
+    const maxHp = typeCfg.hpBase + wave * typeCfg.hpPerWave;
     this.hp = maxHp;
     this.maxHp = maxHp;
-    this.speed = 45 + wave * 4;
-    this.reward = 12 + wave * 2;
+    this.speed = typeCfg.speedBase + wave * typeCfg.speedPerWave;
+    this.reward = typeCfg.reward + wave * typeCfg.rewardPerWave;
     this.waypointIndex = 0;
     this.isRemoved = false;
+
+    // 减速相关
+    this.slowedUntil = 0; // 时间戳（秒），被减速状态持续到该时刻
+
+    // 血条颜色
+    let hpBarColor = 0x6fe36f; // 默认绿色（soldier）
+    if (typeCfg.type === "tank") {
+      hpBarColor = 0xffdd44;
+    } else if (typeCfg.type === "fast") {
+      hpBarColor = 0x44ffaa;
+    }
+    this._hpBarColor = hpBarColor;
 
     // 构建 sprite 容器
     const container = new PIXI.Container();
 
     const body = new PIXI.Sprite(textures.enemy);
     body.anchor.set(0.5);
-    body.width = 36;
-    body.height = 36;
+    body.width = typeCfg.size;
+    body.height = typeCfg.size;
+    body.tint = typeCfg.tint;
     container.addChild(body);
 
     this.hpBar = new PIXI.Graphics();
@@ -40,6 +58,17 @@ export class Enemy {
   }
 
   /**
+   * 有效速度（考虑减速效果）
+   */
+  get effectiveSpeed() {
+    const now = Date.now() / 1000;
+    if (now < this.slowedUntil) {
+      return this.speed * this.slowFactor;
+    }
+    return this.speed;
+  }
+
+  /**
    * 更新血条显示
    */
   updateHpBar() {
@@ -49,7 +78,7 @@ export class Enemy {
     this.hpBar.beginFill(0x1a1a1a);
     this.hpBar.drawRect(-width / 2, 0, width, 4);
     this.hpBar.endFill();
-    this.hpBar.beginFill(0x6fe36f);
+    this.hpBar.beginFill(this._hpBarColor);
     this.hpBar.drawRect(-width / 2, 0, width * ratio, 4);
     this.hpBar.endFill();
   }

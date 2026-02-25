@@ -126,6 +126,27 @@ button.ui-toggle:hover {
   line-height: 1.4;
 }
 
+.tower-select {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tower-btn {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.tower-btn.active {
+  background: #3ecf8e;
+}
+
+.tower-btn small {
+  opacity: 0.8;
+}
+
 /* 开始页面样式 */
 #start-screen {
   position: fixed;

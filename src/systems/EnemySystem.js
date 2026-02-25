@@ -32,7 +32,8 @@ export function updateEnemies(state, deltaSec, deps) {
     const dx = nextPoint.x - enemy.sprite.x;
     const dy = nextPoint.y - enemy.sprite.y;
     const distance = Math.hypot(dx, dy);
-    const step = enemy.speed * deltaSec;
+    // 使用 effectiveSpeed 替代 speed（支持减速效果）
+    const step = enemy.effectiveSpeed * deltaSec;
 
     if (distance <= step) {
       enemy.sprite.position.set(nextPoint.x, nextPoint.y);

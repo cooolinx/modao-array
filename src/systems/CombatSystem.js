@@ -44,13 +44,44 @@ export function updateBullets(state, deltaSec, deps) {
     const step = bullet.speed * deltaSec;
 
     if (distance <= step) {
-      target.hp -= bullet.damage;
+      // 子弹命中目标
+      handleBulletHit(state, bullet, target);
       removeBulletAt(state, i, deps);
       continue;
     }
 
     bullet.sprite.x += (dx / distance) * step;
     bullet.sprite.y += (dy / distance) * step;
+  }
+}
+
+/**
+ * 处理子弹命中
+ * @param {Object} state - 游戏状态
+ * @param {Object} bullet - 命中的子弹
+ * @param {Object} target - 被命中的目标
+ */
+function handleBulletHit(state, bullet, target) {
+  if (bullet.towerType === "cannon" && bullet.splashRadius > 0) {
+    // 群体伤害：在 splashRadius 内对所有敌人造成伤害
+    const splashSq = bullet.splashRadius * bullet.splashRadius;
+    for (const enemy of state.enemies) {
+      if (enemy.isRemoved) continue;
+      const dx = enemy.sprite.x - target.sprite.x;
+      const dy = enemy.sprite.y - target.sprite.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq <= splashSq) {
+        enemy.hp -= bullet.damage;
+      }
+    }
+  } else if (bullet.towerType === "slow") {
+    // 减速命中：单体伤害 + 设置减速状态
+    target.hp -= bullet.damage;
+    const slowUntil = Date.now() / 1000 + bullet.slowDuration;
+    target.slowedUntil = Math.max(target.slowedUntil, slowUntil);
+  } else {
+    // basic 单体伤害
+    target.hp -= bullet.damage;
   }
 }
 

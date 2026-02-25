@@ -13,17 +13,27 @@ export function updateUI(state, elements) {
 }
 
 /**
- * 更新按钮状态和文字
+ * 更新按钮状态（塔选择高亮 + 灵石不足 disable）
  * @param {Object} state - 游戏状态
  * @param {Object} elements - DOM 元素引用
  */
 export function updateButtons(state, elements) {
-  const { buildButton, startWaveButton } = elements;
-  const cost = towerTypes.basic.cost;
-  buildButton.textContent = state.isPlacing
-    ? "取消筑塔"
-    : `筑塔（${cost} 灵石）`;
-  buildButton.disabled = state.gameOver;
+  const { startWaveButton } = elements;
+
+  // 更新塔选择按钮
+  const towerBtns = document.querySelectorAll(".tower-btn");
+  for (const btn of towerBtns) {
+    const type = btn.dataset.type;
+    const cfg = towerTypes[type];
+    if (!cfg) continue;
+
+    const isSelected = state.selectedTowerType === type;
+    const canAfford = state.gold >= cfg.cost;
+
+    btn.classList.toggle("active", isSelected);
+    btn.disabled = state.gameOver || (!isSelected && !canAfford);
+  }
+
   startWaveButton.disabled = state.gameOver || state.waveInProgress;
 }
 

@@ -15,7 +15,7 @@ import {
   pathWaypoints,
 } from "./src/PathSystem.js";
 import { Tower } from "./src/entities/Tower.js";
-import { updateSpawning } from "./src/systems/SpawnSystem.js";
+import { updateSpawning, buildSpawnQueue } from "./src/systems/SpawnSystem.js";
 import { updateTowers, updateBullets } from "./src/systems/CombatSystem.js";
 import { updateEnemies } from "./src/systems/EnemySystem.js";
 import { updateUI, updateButtons, setStatus } from "./src/ui/HUD.js";
@@ -28,13 +28,12 @@ const goldEl = document.getElementById("gold");
 const livesEl = document.getElementById("lives");
 const waveEl = document.getElementById("wave");
 const statusEl = document.getElementById("status");
-const buildButton = document.getElementById("build-tower");
 const startWaveButton = document.getElementById("start-wave");
 const toggleUiButton = document.getElementById("toggle-ui");
 const gameUi = document.getElementById("game-ui");
 
 // DOM 元素引用对象（传给 HUD 等模块）
-const elements = { goldEl, livesEl, waveEl, statusEl, buildButton, startWaveButton };
+const elements = { goldEl, livesEl, waveEl, statusEl, startWaveButton };
 
 // 游戏状态
 let state = createInitialState();
@@ -161,9 +160,21 @@ async function initGame() {
     placementHighlight.visible = false;
   });
 
-  buildButton.addEventListener("click", () => {
-    setBuildMode(!state.isPlacing);
-  });
+  // 塔选择按钮事件监听
+  const towerBtns = document.querySelectorAll(".tower-btn");
+  for (const btn of towerBtns) {
+    btn.addEventListener("click", () => {
+      const type = btn.dataset.type;
+      if (!type || !towerTypes[type]) return;
+      if (state.gameOver) return;
+      // 如果已选同类型 → 取消选择，否则选择该类型
+      if (state.selectedTowerType === type) {
+        setTowerType(null);
+      } else {
+        setTowerType(type);
+      }
+    });
+  }
 
   toggleUiButton.addEventListener("click", () => {
     state.uiCollapsed = !state.uiCollapsed;
@@ -184,7 +195,7 @@ async function initGame() {
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      setBuildMode(false);
+      setTowerType(null);
     }
   });
 
@@ -240,7 +251,7 @@ function updateGame(deltaSec) {
   // 波次结束检测
   if (
     state.waveInProgress &&
-    state.enemiesToSpawn <= 0 &&
+    state.spawnQueue.length === 0 &&
     state.enemies.length === 0
   ) {
     state.waveInProgress = false;
@@ -253,7 +264,7 @@ function updateGame(deltaSec) {
 function startWave() {
   state.wave += 1;
   state.waveInProgress = true;
-  state.enemiesToSpawn = 6 + state.wave * 2;
+  state.spawnQueue = buildSpawnQueue(state.wave);
   state.spawnInterval = Math.max(0.35, 0.9 - state.wave * 0.05);
   state.spawnTimer = 0;
   setStatus(`第 ${state.wave} 波正道来袭！`, elements);
@@ -265,14 +276,14 @@ function startWave() {
 function triggerGameOver() {
   state.gameOver = true;
   state.waveInProgress = false;
-  setBuildMode(false);
+  setTowerType(null);
   setStatus("魔宫陷落！刷新页面重来", elements);
   updateButtons(state, elements);
 }
 
 // ─── 筑塔逻辑 ────────────────────────────────────────────────────────────────
 function handleBoardPointerDown(event) {
-  if (!state.isPlacing || state.gameOver) return;
+  if (!state.selectedTowerType || state.gameOver) return;
 
   const cell = getCellFromEvent(event);
   if (!cell) return;
@@ -286,22 +297,26 @@ function handleBoardPointerDown(event) {
     setStatus("此格已有防御，无需再筑", elements);
     return;
   }
-  const cost = towerTypes.basic.cost;
-  if (state.gold < cost) {
+
+  const config = towerTypes[state.selectedTowerType];
+  if (!config) return;
+
+  if (state.gold < config.cost) {
     setStatus("灵石不足", elements);
     return;
   }
 
-  const tower = new Tower({ cell, texture: textures.tower, config: towerTypes.basic });
+  const tower = new Tower({ cell, texture: textures.tower, config });
   towersLayer.addChild(tower.sprite);
   state.towers.push(tower);
-  state.gold -= cost;
+  state.gold -= config.cost;
   updateUI(state, elements);
-  setStatus("防御塔已落成", elements);
+  updateButtons(state, elements);
+  setStatus(`${config.name} 已落成`, elements);
 }
 
 function handleBoardPointerMove(event) {
-  if (!state.isPlacing || state.gameOver) {
+  if (!state.selectedTowerType || state.gameOver) {
     placementHighlight.visible = false;
     return;
   }
@@ -312,7 +327,8 @@ function handleBoardPointerMove(event) {
     return;
   }
 
-  const valid = canPlaceTower(cell);
+  const config = towerTypes[state.selectedTowerType];
+  const valid = config ? canPlaceTower(cell, config) : false;
   placementHighlight.clear();
   placementHighlight.beginFill(valid ? 0x45f57a : 0xf56262);
   placementHighlight.drawRect(
@@ -325,11 +341,11 @@ function handleBoardPointerMove(event) {
   placementHighlight.visible = true;
 }
 
-function canPlaceTower(cell) {
+function canPlaceTower(cell, config) {
   const cellKey = `${cell.x},${cell.y}`;
   if (pathKeySet.has(cellKey)) return false;
   if (state.towers.some((t) => t.cellKey === cellKey)) return false;
-  if (state.gold < towerTypes.basic.cost) return false;
+  if (state.gold < config.cost) return false;
   return true;
 }
 
@@ -353,13 +369,14 @@ function getCellFromEvent(event) {
   return { x: cellX, y: cellY };
 }
 
-function setBuildMode(active) {
-  state.isPlacing = Boolean(active);
+function setTowerType(type) {
+  state.selectedTowerType = type || null;
   if (placementHighlight) placementHighlight.visible = false;
   updateButtons(state, elements);
 
-  if (state.isPlacing) {
-    setStatus("筑塔模式，点击空格落塔", elements);
+  if (type) {
+    const cfg = towerTypes[type];
+    setStatus(`选择 ${cfg ? cfg.name : type}，点击空格落塔`, elements);
   } else {
     setStatus("取消筑塔", elements);
   }
