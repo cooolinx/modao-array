@@ -1,5 +1,26 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
+import {
+  tileSize,
+  gridWidth,
+  gridHeight,
+  boardWidth,
+  boardHeight,
+  assetUrls,
+  towerTypes,
+} from "./src/config.js";
+import { createInitialState } from "./src/GameState.js";
+import {
+  pathCells,
+  pathKeySet,
+  pathWaypoints,
+} from "./src/PathSystem.js";
+import { Tower } from "./src/entities/Tower.js";
+import { updateSpawning } from "./src/systems/SpawnSystem.js";
+import { updateTowers, updateBullets } from "./src/systems/CombatSystem.js";
+import { updateEnemies } from "./src/systems/EnemySystem.js";
+import { updateUI, updateButtons, setStatus } from "./src/ui/HUD.js";
 
+// DOM 元素
 const startScreen = document.getElementById("start-screen");
 const startGameBtn = document.getElementById("start-game-btn");
 const root = document.getElementById("game-root");
@@ -12,85 +33,13 @@ const startWaveButton = document.getElementById("start-wave");
 const toggleUiButton = document.getElementById("toggle-ui");
 const gameUi = document.getElementById("game-ui");
 
-const config = {
-  tileSize: 64,
-  gridWidth: 24,
-  gridHeight: 18,
-};
+// DOM 元素引用对象（传给 HUD 等模块）
+const elements = { goldEl, livesEl, waveEl, statusEl, buildButton, startWaveButton };
 
-const assetUrls = {
-  tower: "assets/tower.svg",
-  enemy: "assets/enemy.svg",
-};
+// 游戏状态
+let state = createInitialState();
 
-const boardWidth = config.tileSize * config.gridWidth;
-const boardHeight = config.tileSize * config.gridHeight;
-
-const towerCost = 50;
-const towerRange = 150;
-const towerFireRate = 1.0;
-const towerDamage = 12;
-const bulletSpeed = 280;
-
-const state = {
-  gold: 120,
-  lives: 12,
-  wave: 0,
-  isPlacing: false,
-  waveInProgress: false,
-  gameOver: false,
-  uiCollapsed: false,
-  enemiesToSpawn: 0,
-  spawnInterval: 0.8,
-  spawnTimer: 0,
-  towers: [],
-  enemies: [],
-  bullets: [],
-};
-
-const pathNodes = [
-  { x: 0, y: 8 },
-  { x: 6, y: 8 },
-  { x: 6, y: 2 },
-  { x: 16, y: 2 },
-  { x: 16, y: 12 },
-  { x: 22, y: 12 },
-];
-
-function buildPathCells(nodes) {
-  const cells = [];
-  for (let i = 0; i < nodes.length - 1; i += 1) {
-    const start = nodes[i];
-    const end = nodes[i + 1];
-    const stepX = Math.sign(end.x - start.x);
-    const stepY = Math.sign(end.y - start.y);
-    let x = start.x;
-    let y = start.y;
-
-    if (i === 0) {
-      cells.push({ x, y });
-    }
-
-    while (x !== end.x || y !== end.y) {
-      x += stepX;
-      y += stepY;
-      cells.push({ x, y });
-    }
-  }
-  return cells;
-}
-
-function cellCenter(cell) {
-  return {
-    x: cell.x * config.tileSize + config.tileSize / 2,
-    y: cell.y * config.tileSize + config.tileSize / 2,
-  };
-}
-
-const pathCells = buildPathCells(pathNodes);
-const pathKeySet = new Set(pathCells.map((cell) => `${cell.x},${cell.y}`));
-const pathWaypoints = pathCells.map((cell) => cellCenter(cell));
-
+// PIXI 层引用
 let app;
 let boardContainer;
 let towersLayer;
@@ -99,16 +48,26 @@ let bulletsLayer;
 let placementHighlight;
 let textures;
 
-// 开始游戏按钮点击事件
+// 依赖包（传给各系统）
+function makeDeps() {
+  return {
+    textures,
+    pathWaypoints,
+    enemiesLayer,
+    bulletsLayer,
+    elements,
+    onGameOver: triggerGameOver,
+  };
+}
+
+// ─── 开始按钮 ────────────────────────────────────────────────────────────────
 startGameBtn.addEventListener("click", async () => {
-  // 隐藏开始页面，显示游戏界面
   startScreen.classList.add("hidden");
   root.classList.remove("hidden");
-  
-  // 初始化游戏
   await initGame();
 });
 
+// ─── 初始化 ──────────────────────────────────────────────────────────────────
 async function initGame() {
   app = new PIXI.Application();
   await app.init({
@@ -133,37 +92,41 @@ async function initGame() {
   boardContainer.hitArea = new PIXI.Rectangle(0, 0, boardWidth, boardHeight);
   app.stage.addChild(boardContainer);
 
+  // 背景
   const background = new PIXI.Graphics();
   background.beginFill(0x1b1f26);
   background.drawRect(0, 0, boardWidth, boardHeight);
   background.endFill();
   boardContainer.addChild(background);
 
+  // 路径渲染
   const pathGraphics = new PIXI.Graphics();
   pathGraphics.beginFill(0x2a303b);
   for (const cell of pathCells) {
     pathGraphics.drawRect(
-      cell.x * config.tileSize,
-      cell.y * config.tileSize,
-      config.tileSize,
-      config.tileSize
+      cell.x * tileSize,
+      cell.y * tileSize,
+      tileSize,
+      tileSize
     );
   }
   pathGraphics.endFill();
   boardContainer.addChild(pathGraphics);
 
+  // 网格线
   const gridGraphics = new PIXI.Graphics();
   gridGraphics.lineStyle(1, 0xffffff, 0.08);
-  for (let x = 0; x <= config.gridWidth; x += 1) {
-    gridGraphics.moveTo(x * config.tileSize, 0);
-    gridGraphics.lineTo(x * config.tileSize, boardHeight);
+  for (let x = 0; x <= gridWidth; x += 1) {
+    gridGraphics.moveTo(x * tileSize, 0);
+    gridGraphics.lineTo(x * tileSize, boardHeight);
   }
-  for (let y = 0; y <= config.gridHeight; y += 1) {
-    gridGraphics.moveTo(0, y * config.tileSize);
-    gridGraphics.lineTo(boardWidth, y * config.tileSize);
+  for (let y = 0; y <= gridHeight; y += 1) {
+    gridGraphics.moveTo(0, y * tileSize);
+    gridGraphics.lineTo(boardWidth, y * tileSize);
   }
   boardContainer.addChild(gridGraphics);
 
+  // 路径起点/终点标记
   const startMarker = new PIXI.Graphics();
   startMarker.beginFill(0x3ecf8e);
   startMarker.drawCircle(0, 0, 8);
@@ -211,11 +174,9 @@ async function initGame() {
   });
 
   startWaveButton.addEventListener("click", () => {
-    if (state.gameOver) {
-      return;
-    }
+    if (state.gameOver) return;
     if (state.waveInProgress) {
-      setStatus("Wave already running.");
+      setStatus("此波尚未结束", elements);
       return;
     }
     startWave();
@@ -227,14 +188,16 @@ async function initGame() {
     }
   });
 
-  updateUI();
-  updateButtons();
+  updateUI(state, elements);
+  updateButtons(state, elements);
+  setStatus("万劫魔宫，严阵以待", elements);
 
   app.ticker.add(() => {
     updateGame(app.ticker.deltaMS / 1000);
   });
 }
 
+// ─── 布局 ────────────────────────────────────────────────────────────────────
 function layoutBoard() {
   app.renderer.resize(window.innerWidth, window.innerHeight);
   const horizontalPadding = 16;
@@ -264,295 +227,77 @@ function layoutBoard() {
   );
 }
 
+// ─── 游戏主循环 ──────────────────────────────────────────────────────────────
 function updateGame(deltaSec) {
-  if (state.gameOver) {
-    return;
-  }
+  if (state.gameOver) return;
 
-  updateSpawning(deltaSec);
-  updateTowers(deltaSec);
-  updateBullets(deltaSec);
-  updateEnemies(deltaSec);
+  const deps = makeDeps();
+  updateSpawning(state, deltaSec, deps);
+  updateTowers(state, deltaSec, deps);
+  updateBullets(state, deltaSec, deps);
+  updateEnemies(state, deltaSec, deps);
 
+  // 波次结束检测
   if (
     state.waveInProgress &&
     state.enemiesToSpawn <= 0 &&
     state.enemies.length === 0
   ) {
     state.waveInProgress = false;
-    setStatus(`Wave ${state.wave} cleared. Ready for the next wave.`);
-    updateButtons();
+    setStatus(`第 ${state.wave} 波已退，养精蓄锐`, elements);
+    updateButtons(state, elements);
   }
 }
 
+// ─── 波次管理 ────────────────────────────────────────────────────────────────
 function startWave() {
   state.wave += 1;
   state.waveInProgress = true;
   state.enemiesToSpawn = 6 + state.wave * 2;
   state.spawnInterval = Math.max(0.35, 0.9 - state.wave * 0.05);
   state.spawnTimer = 0;
-  setStatus(`Wave ${state.wave} started.`);
-  updateUI();
-  updateButtons();
+  setStatus(`第 ${state.wave} 波正道来袭！`, elements);
+  updateUI(state, elements);
+  updateButtons(state, elements);
 }
 
-function updateSpawning(deltaSec) {
-  if (!state.waveInProgress || state.enemiesToSpawn <= 0) {
-    return;
-  }
-
-  state.spawnTimer -= deltaSec;
-  while (state.spawnTimer <= 0 && state.enemiesToSpawn > 0) {
-    spawnEnemy();
-    state.enemiesToSpawn -= 1;
-    state.spawnTimer += state.spawnInterval;
-  }
-}
-
-function spawnEnemy() {
-  const maxHp = 40 + state.wave * 14;
-  const enemy = {
-    hp: maxHp,
-    maxHp,
-    speed: 45 + state.wave * 4,
-    reward: 12 + state.wave * 2,
-    waypointIndex: 0,
-    sprite: new PIXI.Container(),
-    hpBar: new PIXI.Graphics(),
-    isRemoved: false,
-  };
-
-  const body = new PIXI.Sprite(textures.enemy);
-  body.anchor.set(0.5);
-  body.width = 36;
-  body.height = 36;
-  enemy.sprite.addChild(body);
-
-  enemy.hpBar.y = -26;
-  enemy.sprite.addChild(enemy.hpBar);
-  updateEnemyHpBar(enemy);
-
-  const start = pathWaypoints[0];
-  enemy.sprite.position.set(start.x, start.y);
-  enemiesLayer.addChild(enemy.sprite);
-  state.enemies.push(enemy);
-}
-
-function updateEnemies(deltaSec) {
-  for (let i = state.enemies.length - 1; i >= 0; i -= 1) {
-    const enemy = state.enemies[i];
-
-    if (enemy.hp <= 0) {
-      handleEnemyKilled(enemy, i);
-      continue;
-    }
-
-    if (enemy.waypointIndex >= pathWaypoints.length - 1) {
-      handleEnemyEscaped(enemy, i);
-      continue;
-    }
-
-    const nextPoint = pathWaypoints[enemy.waypointIndex + 1];
-    if (!nextPoint) {
-      handleEnemyEscaped(enemy, i);
-      continue;
-    }
-
-    const dx = nextPoint.x - enemy.sprite.x;
-    const dy = nextPoint.y - enemy.sprite.y;
-    const distance = Math.hypot(dx, dy);
-    const step = enemy.speed * deltaSec;
-
-    if (distance <= step) {
-      enemy.sprite.position.set(nextPoint.x, nextPoint.y);
-      enemy.waypointIndex += 1;
-    } else {
-      enemy.sprite.x += (dx / distance) * step;
-      enemy.sprite.y += (dy / distance) * step;
-    }
-
-    updateEnemyHpBar(enemy);
-  }
-}
-
-function updateTowers(deltaSec) {
-  for (const tower of state.towers) {
-    tower.cooldown -= deltaSec;
-    if (tower.cooldown > 0) {
-      continue;
-    }
-
-    const target = findTarget(tower);
-    if (!target) {
-      continue;
-    }
-
-    fireBullet(tower, target);
-    tower.cooldown = 1 / tower.fireRate;
-  }
-}
-
-function updateBullets(deltaSec) {
-  for (let i = state.bullets.length - 1; i >= 0; i -= 1) {
-    const bullet = state.bullets[i];
-    const target = bullet.target;
-    if (!target || target.isRemoved) {
-      removeBulletAt(i);
-      continue;
-    }
-
-    const dx = target.sprite.x - bullet.sprite.x;
-    const dy = target.sprite.y - bullet.sprite.y;
-    const distance = Math.hypot(dx, dy);
-    const step = bullet.speed * deltaSec;
-
-    if (distance <= step) {
-      target.hp -= bullet.damage;
-      removeBulletAt(i);
-      continue;
-    }
-
-    bullet.sprite.x += (dx / distance) * step;
-    bullet.sprite.y += (dy / distance) * step;
-  }
-}
-
-function findTarget(tower) {
-  const rangeSq = tower.range * tower.range;
-  let closest = null;
-  let closestDist = Infinity;
-
-  for (const enemy of state.enemies) {
-    if (enemy.isRemoved) {
-      continue;
-    }
-    const dx = enemy.sprite.x - tower.sprite.x;
-    const dy = enemy.sprite.y - tower.sprite.y;
-    const distSq = dx * dx + dy * dy;
-    if (distSq <= rangeSq && distSq < closestDist) {
-      closest = enemy;
-      closestDist = distSq;
-    }
-  }
-
-  return closest;
-}
-
-function fireBullet(tower, target) {
-  const bulletGraphic = new PIXI.Graphics();
-  bulletGraphic.beginFill(0xffe29a);
-  bulletGraphic.drawCircle(0, 0, 4);
-  bulletGraphic.endFill();
-  bulletGraphic.position.set(tower.sprite.x, tower.sprite.y);
-  bulletsLayer.addChild(bulletGraphic);
-
-  state.bullets.push({
-    sprite: bulletGraphic,
-    target,
-    speed: bulletSpeed,
-    damage: tower.damage,
-  });
-}
-
-function handleEnemyKilled(enemy, index) {
-  state.gold += enemy.reward;
-  updateUI();
-  removeEnemyAt(index);
-}
-
-function handleEnemyEscaped(enemy, index) {
-  state.lives -= 1;
-  updateUI();
-  removeEnemyAt(index);
-  setStatus("An enemy slipped through.");
-
-  if (state.lives <= 0) {
-    triggerGameOver();
-  }
-}
-
+// ─── 游戏结束 ────────────────────────────────────────────────────────────────
 function triggerGameOver() {
   state.gameOver = true;
   state.waveInProgress = false;
   setBuildMode(false);
-  setStatus("Game over. Refresh the page to try again.");
-  updateButtons();
+  setStatus("魔宫陷落！刷新页面重来", elements);
+  updateButtons(state, elements);
 }
 
-function removeEnemyAt(index) {
-  const enemy = state.enemies[index];
-  enemy.isRemoved = true;
-  enemiesLayer.removeChild(enemy.sprite);
-  enemy.sprite.destroy({ children: true });
-  state.enemies.splice(index, 1);
-}
-
-function removeBulletAt(index) {
-  const bullet = state.bullets[index];
-  bulletsLayer.removeChild(bullet.sprite);
-  bullet.sprite.destroy();
-  state.bullets.splice(index, 1);
-}
-
-function createTower(cell) {
-  const towerContainer = new PIXI.Container();
-  towerContainer.position.set(
-    cell.x * config.tileSize + config.tileSize / 2,
-    cell.y * config.tileSize + config.tileSize / 2
-  );
-
-  const rangeRing = new PIXI.Graphics();
-  rangeRing.lineStyle(2, 0x6fe3ff, 0.18);
-  rangeRing.drawCircle(0, 0, towerRange);
-  towerContainer.addChild(rangeRing);
-
-  const towerSprite = new PIXI.Sprite(textures.tower);
-  towerSprite.anchor.set(0.5);
-  towerSprite.width = 52;
-  towerSprite.height = 52;
-  towerContainer.addChild(towerSprite);
-
-  towersLayer.addChild(towerContainer);
-
-  return {
-    sprite: towerContainer,
-    range: towerRange,
-    fireRate: towerFireRate,
-    damage: towerDamage,
-    cooldown: 0,
-    cellKey: `${cell.x},${cell.y}`,
-  };
-}
-
+// ─── 筑塔逻辑 ────────────────────────────────────────────────────────────────
 function handleBoardPointerDown(event) {
-  if (!state.isPlacing || state.gameOver) {
-    return;
-  }
+  if (!state.isPlacing || state.gameOver) return;
 
   const cell = getCellFromEvent(event);
-  if (!cell) {
-    return;
-  }
+  if (!cell) return;
 
   const cellKey = `${cell.x},${cell.y}`;
   if (pathKeySet.has(cellKey)) {
-    setStatus("Cannot build on the path.");
+    setStatus("此处乃通路，不可筑塔", elements);
     return;
   }
-  if (state.towers.some((tower) => tower.cellKey === cellKey)) {
-    setStatus("That tile already has a tower.");
+  if (state.towers.some((t) => t.cellKey === cellKey)) {
+    setStatus("此格已有防御，无需再筑", elements);
     return;
   }
-  if (state.gold < towerCost) {
-    setStatus("Not enough gold.");
+  const cost = towerTypes.basic.cost;
+  if (state.gold < cost) {
+    setStatus("灵石不足", elements);
     return;
   }
 
-  const tower = createTower(cell);
+  const tower = new Tower({ cell, texture: textures.tower, config: towerTypes.basic });
+  towersLayer.addChild(tower.sprite);
   state.towers.push(tower);
-  state.gold -= towerCost;
-  updateUI();
-  setStatus("Tower deployed.");
+  state.gold -= cost;
+  updateUI(state, elements);
+  setStatus("防御塔已落成", elements);
 }
 
 function handleBoardPointerMove(event) {
@@ -571,10 +316,10 @@ function handleBoardPointerMove(event) {
   placementHighlight.clear();
   placementHighlight.beginFill(valid ? 0x45f57a : 0xf56262);
   placementHighlight.drawRect(
-    cell.x * config.tileSize,
-    cell.y * config.tileSize,
-    config.tileSize,
-    config.tileSize
+    cell.x * tileSize,
+    cell.y * tileSize,
+    tileSize,
+    tileSize
   );
   placementHighlight.endFill();
   placementHighlight.visible = true;
@@ -582,15 +327,9 @@ function handleBoardPointerMove(event) {
 
 function canPlaceTower(cell) {
   const cellKey = `${cell.x},${cell.y}`;
-  if (pathKeySet.has(cellKey)) {
-    return false;
-  }
-  if (state.towers.some((tower) => tower.cellKey === cellKey)) {
-    return false;
-  }
-  if (state.gold < towerCost) {
-    return false;
-  }
+  if (pathKeySet.has(cellKey)) return false;
+  if (state.towers.some((t) => t.cellKey === cellKey)) return false;
+  if (state.gold < towerTypes.basic.cost) return false;
   return true;
 }
 
@@ -599,14 +338,14 @@ function getCellFromEvent(event) {
     ? event.data.getLocalPosition(boardContainer)
     : event.getLocalPosition(boardContainer);
 
-  const cellX = Math.floor(local.x / config.tileSize);
-  const cellY = Math.floor(local.y / config.tileSize);
+  const cellX = Math.floor(local.x / tileSize);
+  const cellY = Math.floor(local.y / tileSize);
 
   if (
     cellX < 0 ||
-    cellX >= config.gridWidth ||
+    cellX >= gridWidth ||
     cellY < 0 ||
-    cellY >= config.gridHeight
+    cellY >= gridHeight
   ) {
     return null;
   }
@@ -616,42 +355,12 @@ function getCellFromEvent(event) {
 
 function setBuildMode(active) {
   state.isPlacing = Boolean(active);
-  placementHighlight.visible = false;
-  updateButtons();
+  if (placementHighlight) placementHighlight.visible = false;
+  updateButtons(state, elements);
 
   if (state.isPlacing) {
-    setStatus("Build mode active. Choose a tile.");
+    setStatus("筑塔模式，点击空格落塔", elements);
   } else {
-    setStatus("Build mode canceled.");
+    setStatus("取消筑塔", elements);
   }
-}
-
-function updateEnemyHpBar(enemy) {
-  const width = 28;
-  const ratio = Math.max(0, enemy.hp) / enemy.maxHp;
-  enemy.hpBar.clear();
-  enemy.hpBar.beginFill(0x1a1a1a);
-  enemy.hpBar.drawRect(-width / 2, 0, width, 4);
-  enemy.hpBar.endFill();
-  enemy.hpBar.beginFill(0x6fe36f);
-  enemy.hpBar.drawRect(-width / 2, 0, width * ratio, 4);
-  enemy.hpBar.endFill();
-}
-
-function updateUI() {
-  goldEl.textContent = state.gold;
-  livesEl.textContent = state.lives;
-  waveEl.textContent = state.wave;
-}
-
-function updateButtons() {
-  buildButton.textContent = state.isPlacing
-    ? "Cancel Build"
-    : `Build Tower (${towerCost})`;
-  buildButton.disabled = state.gameOver;
-  startWaveButton.disabled = state.gameOver || state.waveInProgress;
-}
-
-function setStatus(text) {
-  statusEl.textContent = text;
 }

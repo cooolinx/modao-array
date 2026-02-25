@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1"
     />
-    <title>H5 Tower Defense - Pixi.js</title>
+    <title>魔道塔防</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -16,16 +16,16 @@
         <div class="cover-image-wrapper">
           <img src="assets/IMG_0658.png" alt="游戏封面" class="cover-image" />
         </div>
-        <h1 class="game-title">塔防传奇</h1>
-        <p class="game-subtitle">守护你的领地，击退敌人</p>
+        <h1 class="game-title">魔道塔防</h1>
+        <p class="game-subtitle">你是万劫老祖，守护万骨山</p>
         <button id="start-game-btn" class="start-button">
           <span class="button-text">开始游戏</span>
           <span class="button-icon">→</span>
         </button>
         <div class="game-instructions">
           <p>🎯 点击格子放置防御塔</p>
-          <p>⚔️ 击退敌人获得金币</p>
-          <p>🛡️ 保护你的生命值</p>
+          <p>⚔️ 击退魔道获得灵石</p>
+          <p>🛡️ 守护万骨山气运</p>
         </div>
       </div>
     </div>
@@ -37,18 +37,17 @@
       </button>
       <div id="game-ui">
         <div class="stats">
-          <div>Gold: <span id="gold">0</span></div>
-          <div>Lives: <span id="lives">0</span></div>
-          <div>Wave: <span id="wave">0</span></div>
+          <div>灵石：<span id="gold">0</span></div>
+          <div>气运：<span id="lives">0</span></div>
+          <div>第 <span id="wave">0</span> 波</div>
         </div>
         <div class="controls">
-          <button id="build-tower">Build Tower (50)</button>
-          <button id="start-wave">Start Wave</button>
+          <button id="build-tower">筑塔（50 灵石）</button>
+          <button id="start-wave">召敌开波</button>
         </div>
-        <div id="status">Ready to defend the path.</div>
+        <div id="status">万劫魔宫，严阵以待</div>
         <div class="tips">
-          Click a grid tile to place a tower. Press Esc to cancel build mode.
-          右上角可收起操作面板。
+          点击空格落塔，按 Esc 取消筑塔模式。右上角可收起操作面板。
         </div>
       </div>
     </div>
