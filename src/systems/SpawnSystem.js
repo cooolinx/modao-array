@@ -1,35 +1,30 @@
 import { Enemy } from "../entities/Enemy.js";
-import { waveConfigs, enemyTypes } from "../config.js";
 
 /**
- * 根据波次生成敌人队列（shuffle 混合）
+ * 根据关卡波次配置（waveOverrides）生成敌人队列
  * @param {number} wave - 当前波次（1-indexed）
- * @returns {string[]} 敌人类型字符串数组
+ * @param {Array} waveOverrides - 关卡波次配置数组
+ * @returns {string[]} 敌人类型字符串数组（已 shuffle）
  */
-export function buildSpawnQueue(wave) {
+export function buildSpawnQueueFromOverrides(wave, waveOverrides) {
   const waveIndex = wave - 1;
   let config;
 
-  if (waveIndex < waveConfigs.length) {
-    config = waveConfigs[waveIndex];
+  if (waveIndex < waveOverrides.length) {
+    config = waveOverrides[waveIndex];
   } else {
-    // 超出配置：使用最后一波配置，数量随波次递增
-    const lastConfig = waveConfigs[waveConfigs.length - 1];
-    const extraWaves = waveIndex - (waveConfigs.length - 1);
+    // 超出配置：使用最后一波，数量递增
+    const last = waveOverrides[waveOverrides.length - 1];
+    const extra = waveIndex - (waveOverrides.length - 1);
     config = {
-      enemies: lastConfig.enemies.map((entry) => ({
-        type: entry.type,
-        count: entry.count + extraWaves * 2,
-      })),
+      enemies: last.enemies.map(e => ({ type: e.type, count: e.count + extra * 3 })),
     };
   }
 
-  // 展开为数组并 shuffle
+  // 展开为数组
   const queue = [];
   for (const entry of config.enemies) {
-    for (let i = 0; i < entry.count; i++) {
-      queue.push(entry.type);
-    }
+    for (let i = 0; i < entry.count; i++) queue.push(entry.type);
   }
 
   // Fisher-Yates shuffle
@@ -43,14 +38,9 @@ export function buildSpawnQueue(wave) {
 
 /**
  * 更新敌人生成逻辑
- * @param {Object} state - 游戏状态
- * @param {number} deltaSec - 帧时间（秒）
- * @param {Object} deps - 依赖 { textures, pathWaypoints, enemiesLayer }
  */
 export function updateSpawning(state, deltaSec, deps) {
-  if (!state.waveInProgress || !state.spawnQueue || state.spawnQueue.length === 0) {
-    return;
-  }
+  if (!state.waveInProgress || !state.spawnQueue || state.spawnQueue.length === 0) return;
 
   state.spawnTimer -= deltaSec;
   while (state.spawnTimer <= 0 && state.spawnQueue.length > 0) {
@@ -60,13 +50,7 @@ export function updateSpawning(state, deltaSec, deps) {
   }
 }
 
-/**
- * 生成一个新敌人
- * @param {Object} state - 游戏状态
- * @param {Object} deps - 依赖 { textures, pathWaypoints, enemiesLayer }
- * @param {string} [enemyType] - 敌人类型，默认 "soldier"
- */
-export function spawnEnemy(state, deps, enemyType = "soldier") {
+function spawnEnemy(state, deps, enemyType = "soldier") {
   const { textures, pathWaypoints, enemiesLayer } = deps;
   const enemy = new Enemy({ enemyType, wave: state.wave, textures, pathWaypoints });
   enemiesLayer.addChild(enemy.sprite);

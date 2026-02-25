@@ -19,5 +19,8 @@ export function createInitialState() {
     towers: [],
     enemies: [],
     bullets: [],
+    ghosts: [],
+    wanguiCooldownRemaining: 0,
+    victory: false,
   };
 }

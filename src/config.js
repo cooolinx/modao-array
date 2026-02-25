@@ -105,3 +105,13 @@ export const waveConfigs = [
 ];
 
 export const bulletSpeed = 280;
+
+// 万鬼大阵配置
+export const wanguiConfig = {
+  cost: 80,           // 灵石消耗
+  cooldown: 30,       // 冷却秒数
+  ghostCount: 8,      // 召唤鬼兵数量
+  ghostDamage: 30,    // 每个鬼兵碰撞伤害
+  ghostSpeed: 200,    // 鬼兵速度（反向沿路径跑）
+  ghostRadius: 20,    // 碰撞半径
+};

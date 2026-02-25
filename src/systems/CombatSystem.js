@@ -1,4 +1,5 @@
 import { createBullet } from "../entities/Bullet.js";
+import { playShoot, playExplosion } from "../audio/SoundSystem.js";
 
 /**
  * 更新所有塔的攻击逻辑
@@ -74,6 +75,7 @@ function handleBulletHit(state, bullet, target) {
         enemy.hp -= bullet.damage;
       }
     }
+    playExplosion();
   } else if (bullet.towerType === "slow") {
     // 减速命中：单体伤害 + 设置减速状态
     target.hp -= bullet.damage;
@@ -124,6 +126,10 @@ export function fireBullet(state, tower, target, deps) {
   const bullet = createBullet(tower, target);
   bulletsLayer.addChild(bullet.sprite);
   state.bullets.push(bullet);
+  // 基础塔和减速塔发射音效（cannon 在命中时播放爆炸音）
+  if (tower.type !== "cannon") {
+    playShoot();
+  }
 }
 
 function removeBulletAt(state, index, deps) {

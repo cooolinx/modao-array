@@ -1,5 +1,6 @@
 import { updateUI } from "../ui/HUD.js";
 import { setStatus } from "../ui/HUD.js";
+import { playEnemyDie, playLifeLost } from "../audio/SoundSystem.js";
 
 /**
  * 更新所有敌人的移动逻辑
@@ -58,6 +59,7 @@ export function handleEnemyKilled(state, enemy, index, deps) {
   const { enemiesLayer, elements } = deps;
   state.gold += enemy.reward;
   updateUI(state, elements);
+  playEnemyDie();
   removeEnemyAt(state, index, enemiesLayer);
 }
 
@@ -72,6 +74,7 @@ export function handleEnemyEscaped(state, enemy, index, deps) {
   const { enemiesLayer, elements, onGameOver } = deps;
   state.lives -= 1;
   updateUI(state, elements);
+  playLifeLost();
   removeEnemyAt(state, index, enemiesLayer);
   setStatus("有敌突破防线，气运受损！", elements);
 

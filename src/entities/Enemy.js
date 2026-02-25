@@ -44,6 +44,15 @@ export class Enemy {
     body.tint = typeCfg.tint;
     container.addChild(body);
 
+    // 减速冰晶圆圈（蓝色半透明，默认隐藏）
+    const slowCircle = new PIXI.Graphics();
+    slowCircle.beginFill(0x88ccff, 0.4);
+    slowCircle.drawCircle(0, 0, typeCfg.size / 2 + 4);
+    slowCircle.endFill();
+    slowCircle.visible = false;
+    container.addChild(slowCircle);
+    this._slowCircle = slowCircle;
+
     this.hpBar = new PIXI.Graphics();
     this.hpBar.y = -26;
     container.addChild(this.hpBar);
@@ -81,5 +90,11 @@ export class Enemy {
     this.hpBar.beginFill(this._hpBarColor);
     this.hpBar.drawRect(-width / 2, 0, width * ratio, 4);
     this.hpBar.endFill();
+
+    // 更新减速冰晶可见性
+    if (this._slowCircle) {
+      const now = Date.now() / 1000;
+      this._slowCircle.visible = now < this.slowedUntil;
+    }
   }
 }

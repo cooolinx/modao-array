@@ -2,15 +2,13 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <title>魔道塔防</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- 游戏开始页面 -->
+
+    <!-- ── 主页面 ─────────────────────────────────────────────── -->
     <div id="start-screen">
       <div class="start-container">
         <div class="cover-image-wrapper">
@@ -18,31 +16,55 @@
         </div>
         <h1 class="game-title">魔道塔防</h1>
         <p class="game-subtitle">你是万劫老祖，守护万骨山</p>
-        <button id="start-game-btn" class="start-button">
-          <span class="button-text">开始游戏</span>
+        <button id="open-campaign-btn" class="start-button">
+          <span class="button-text">选择战场</span>
           <span class="button-icon">→</span>
         </button>
         <div class="game-instructions">
-          <p>🎯 点击格子放置防御塔</p>
-          <p>⚔️ 击退魔道获得灵石</p>
+          <p>🎯 选择防御塔点击格子落塔</p>
+          <p>⚔️ 击退正道获得灵石</p>
           <p>🛡️ 守护万骨山气运</p>
         </div>
       </div>
     </div>
 
-    <!-- 游戏主界面 -->
+    <!-- ── 大关卡选择（7个战场）────────────────────────────────── -->
+    <div id="campaign-screen" class="hidden">
+      <div class="campaign-container">
+        <h2 class="campaign-title">选择战场</h2>
+        <p class="campaign-subtitle">玄黄大陆七大战场，逐一击退正道围攻</p>
+        <div id="campaign-cards" class="campaign-cards"></div>
+        <button id="campaign-back-btn" class="back-btn">← 返回</button>
+      </div>
+    </div>
+
+    <!-- ── 小关卡选择 ──────────────────────────────────────────── -->
+    <div id="level-screen" class="hidden">
+      <div class="level-screen-container">
+        <h2 id="level-screen-title" class="campaign-title"></h2>
+        <div id="level-cards" class="level-cards"></div>
+        <button id="level-back-btn" class="back-btn">← 返回战场选择</button>
+      </div>
+    </div>
+
+    <!-- ── 游戏主界面 ──────────────────────────────────────────── -->
     <div id="game-root" class="hidden">
-      <button id="toggle-ui" class="ui-toggle" aria-expanded="true">
-        收起面板
-      </button>
+      <button id="toggle-ui" class="ui-toggle" aria-expanded="true">收起面板</button>
       <div id="game-ui">
         <div class="stats">
           <div>灵石：<span id="gold">0</span></div>
           <div>气运：<span id="lives">0</span></div>
           <div>第 <span id="wave">0</span> 波</div>
         </div>
+        <div class="wave-progress">
+          <div class="wave-bar-bg">
+            <div id="wave-bar-fill" class="wave-bar-fill"></div>
+          </div>
+          <span id="wave-progress-text">0 / 0</span>
+        </div>
         <div class="controls">
           <button id="start-wave">召敌开波</button>
+          <button id="wangui-btn">万鬼大阵<br><small>80 灵石 · 冷却 <span id="wangui-cd">就绪</span></small></button>
         </div>
         <div class="tower-select">
           <button class="tower-btn" data-type="basic">骷髅弓手<br><small>50 灵石</small></button>
@@ -50,11 +72,34 @@
           <button class="tower-btn" data-type="slow">寒冰阵<br><small>75 灵石</small></button>
         </div>
         <div id="status">万劫魔宫，严阵以待</div>
-        <div class="tips">
-          选择防御塔后点击空格落塔，按 Esc 取消筑塔模式。右上角可收起操作面板。
+        <div class="tips">选塔后点击空格落塔，Esc 取消</div>
+      </div>
+
+      <!-- 游戏结束遮罩 -->
+      <div id="game-over-screen" class="game-overlay hidden">
+        <div class="overlay-box">
+          <div class="overlay-icon">💀</div>
+          <div class="overlay-title">魔宫陷落</div>
+          <div class="overlay-subtitle">气运耗尽，万劫老祖陨落</div>
+          <div class="overlay-stats">坚守了 <span id="final-wave">0</span> 波</div>
+          <button id="retry-btn">重整旗鼓</button>
+          <button id="game-over-menu-btn">回到主界面</button>
+        </div>
+      </div>
+
+      <!-- 胜利遮罩 -->
+      <div id="victory-screen" class="game-overlay hidden">
+        <div class="overlay-box victory">
+          <div class="overlay-icon">🔥</div>
+          <div class="overlay-title">魔道长存</div>
+          <div class="overlay-subtitle">正道退兵，万骨山守住了！</div>
+          <div class="overlay-stats">历经 <span id="victory-wave">0</span> 波考验</div>
+          <button id="next-level-btn">挑战下一关</button>
+          <button id="back-menu-btn">回到主界面</button>
         </div>
       </div>
     </div>
+
     <script type="module" src="main.js"></script>
   </body>
 </html>

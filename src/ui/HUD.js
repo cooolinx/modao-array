@@ -10,6 +10,16 @@ export function updateUI(state, elements) {
   goldEl.textContent = state.gold;
   livesEl.textContent = state.lives;
   waveEl.textContent = state.wave;
+
+  // 波次进度条
+  const waveBarFill = document.getElementById("wave-bar-fill");
+  const waveProgressText = document.getElementById("wave-progress-text");
+  if (waveBarFill && waveProgressText) {
+    const total = state.totalWaves || 8;
+    const pct = total > 0 ? Math.min(100, (state.wave / total) * 100) : 0;
+    waveBarFill.style.width = pct + "%";
+    waveProgressText.textContent = `${state.wave} / ${total}`;
+  }
 }
 
 /**
@@ -34,7 +44,30 @@ export function updateButtons(state, elements) {
     btn.disabled = state.gameOver || (!isSelected && !canAfford);
   }
 
-  startWaveButton.disabled = state.gameOver || state.waveInProgress;
+  startWaveButton.disabled = state.gameOver || state.waveInProgress || state.victory;
+
+  // 更新万鬼大阵按钮
+  updateWanguiBtn(state, elements);
+}
+
+/**
+ * 更新万鬼大阵按钮状态
+ * @param {Object} state - 游戏状态
+ * @param {Object} elements - DOM 元素引用
+ */
+export function updateWanguiBtn(state, elements) {
+  const wanguiBtn = document.getElementById("wangui-btn");
+  const wanguiCd = document.getElementById("wangui-cd");
+  if (!wanguiBtn || !wanguiCd) return;
+
+  const cd = state.wanguiCooldownRemaining;
+  if (cd > 0) {
+    wanguiCd.textContent = `${Math.ceil(cd)}s`;
+    wanguiBtn.disabled = true;
+  } else {
+    wanguiCd.textContent = "就绪";
+    wanguiBtn.disabled = state.gameOver || state.victory || state.gold < 80;
+  }
 }
 
 /**
