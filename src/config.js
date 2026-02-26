@@ -7,6 +7,10 @@ export const gridHeight = 18;
 export const boardWidth = tileSize * gridWidth;
 export const boardHeight = tileSize * gridHeight;
 
+// 背景图原始宽高比（2752×1536），用于保持比例不压扁
+export const bgAspectW = 2752;
+export const bgAspectH = 1536;
+
 export const assetUrls = {
   tower: "assets/tower.svg",
   enemy: "assets/enemy.svg",

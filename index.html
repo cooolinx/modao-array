@@ -49,31 +49,46 @@
 
     <!-- ── 游戏主界面 ──────────────────────────────────────────── -->
     <div id="game-root" class="hidden">
-      <button id="toggle-ui" class="ui-toggle" aria-expanded="true">收起面板</button>
+      <!-- 底部 HUD -->
       <div id="game-ui">
-        <div class="stats">
-          <div>灵石：<span id="gold">0</span></div>
-          <div>气运：<span id="lives">0</span></div>
-          <div>第 <span id="wave">0</span> 波</div>
-        </div>
-        <div class="wave-progress">
-          <div class="wave-bar-bg">
-            <div id="wave-bar-fill" class="wave-bar-fill"></div>
+        <!-- 左：资源信息 -->
+        <div class="hud-left">
+          <div class="hud-stat">💎 <span id="gold">0</span></div>
+          <div class="hud-stat">🔮 <span id="lives">0</span></div>
+          <div class="hud-stat wave-info">
+            波次 <span id="wave">0</span>
+            <div class="wave-bar-bg"><div id="wave-bar-fill" class="wave-bar-fill"></div></div>
+            <span id="wave-progress-text"></span>
           </div>
-          <span id="wave-progress-text">0 / 0</span>
         </div>
-        <div class="controls">
-          <button id="start-wave">召敌开波</button>
-          <button id="wangui-btn">万鬼大阵<br><small>80 灵石 · 冷却 <span id="wangui-cd">就绪</span></small></button>
+        <!-- 中：建塔选择 -->
+        <div class="hud-center">
+          <button class="tower-btn" data-type="basic">
+            <span class="tower-icon">🏹</span>
+            <span class="tower-name">骷髅弓手</span>
+            <span class="tower-cost">50💎</span>
+          </button>
+          <button class="tower-btn" data-type="cannon">
+            <span class="tower-icon">💣</span>
+            <span class="tower-name">魔炮台</span>
+            <span class="tower-cost">100💎</span>
+          </button>
+          <button class="tower-btn" data-type="slow">
+            <span class="tower-icon">❄️</span>
+            <span class="tower-name">寒冰阵</span>
+            <span class="tower-cost">75💎</span>
+          </button>
         </div>
-        <div class="tower-select">
-          <button class="tower-btn" data-type="basic">骷髅弓手<br><small>50 灵石</small></button>
-          <button class="tower-btn" data-type="cannon">魔炮台<br><small>100 灵石</small></button>
-          <button class="tower-btn" data-type="slow">寒冰阵<br><small>75 灵石</small></button>
+        <!-- 右：行动按钮 -->
+        <div class="hud-right">
+          <button id="wangui-btn">
+            👻 万鬼大阵<br><small>80💎 · <span id="wangui-cd">就绪</span></small>
+          </button>
+          <button id="start-wave">⚔️ 召敌开波</button>
+          <button id="toggle-ui" class="ui-toggle" aria-expanded="true">收起</button>
         </div>
-        <div id="status">万劫魔宫，严阵以待</div>
-        <div class="tips">选塔后点击空格落塔，Esc 取消</div>
       </div>
+      <div id="status">万劫魔宫，严阵以待</div>
 
       <!-- 游戏结束遮罩 -->
       <div id="game-over-screen" class="game-overlay hidden">

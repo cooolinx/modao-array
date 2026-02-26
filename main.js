@@ -5,6 +5,8 @@ import {
   gridHeight,
   boardWidth,
   boardHeight,
+  bgAspectW,
+  bgAspectH,
   assetUrls,
   chapterBackgrounds,
   towerTypes,
@@ -217,8 +219,9 @@ async function initGame(level) {
   if (bgUrl) {
     const bgTexture = await PIXI.Assets.load(bgUrl);
     const bgSprite = new PIXI.Sprite(bgTexture);
-    bgSprite.width = boardWidth;
-    bgSprite.height = boardHeight;
+    // 背景图按原始比例铺满（bgAspectW × bgAspectH），不压扁
+    bgSprite.width = bgAspectW;
+    bgSprite.height = bgAspectH;
     boardContainer.addChild(bgSprite);
   } else {
     // fallback：程序生成深色背景
@@ -384,16 +387,28 @@ async function initGame(level) {
 function layoutBoard() {
   if (!app) return;
   app.renderer.resize(window.innerWidth, window.innerHeight);
-  const hPad = 16, vPad = 16, gap = 12;
-  const uiHeight = state.uiCollapsed ? 0 : gameUi.getBoundingClientRect().height;
-  const topInset = (uiHeight ? uiHeight + gap : 0) + vPad;
-  const avW = Math.max(0, app.screen.width - hPad * 2);
-  const avH = Math.max(0, app.screen.height - topInset - vPad);
-  const scale = Math.min(avW / boardWidth, avH / boardHeight, 1);
+
+  const HUD_H = 80; // 底部 HUD 固定高度
+  const hudHeight = state.uiCollapsed ? 0 : HUD_H;
+  const avW = app.screen.width;
+  const avH = app.screen.height - hudHeight;
+
+  // 有背景图时，按背景图比例缩放；无背景图时按游戏网格比例
+  const chapterId = currentLevel ? parseInt(currentLevel.id.split("-")[0]) : 0;
+  const hasBg = !!chapterBackgrounds[chapterId];
+  const refW = hasBg ? bgAspectW : boardWidth;
+  const refH = hasBg ? bgAspectH : boardHeight;
+
+  const scale = Math.min(avW / refW, avH / refH);
   boardContainer.scale.set(scale);
-  const sw = boardWidth * scale, sh = boardHeight * scale;
-  boardContainer.x = Math.round((app.screen.width - sw) / 2);
-  boardContainer.y = Math.round(topInset + (avH - sh) / 2);
+
+  const sw = refW * scale;
+  const sh = refH * scale;
+  boardContainer.x = Math.round((avW - sw) / 2);
+  boardContainer.y = 0;
+
+  // 同步更新 boardContainer hitArea 为实际渲染尺寸
+  boardContainer.hitArea = new PIXI.Rectangle(0, 0, refW, refH);
 }
 
 // ─── 游戏主循环 ───────────────────────────────────────────────────────────────
