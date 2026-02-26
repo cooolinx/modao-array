@@ -46,6 +46,7 @@ let currentLevel = null;   // 当前小关卡数据
 let pathCells = [];
 let pathKeySet = new Set();
 let pathWaypoints = [];
+let towerSpotSet = new Set(); // 允许建塔的格子
 
 // PIXI 层引用
 let app;
@@ -183,6 +184,11 @@ async function initGame(level) {
   pathKeySet = built.pathKeySet;
   pathWaypoints = built.pathWaypoints;
 
+  // 构建塔位白名单
+  towerSpotSet = new Set(
+    (level.towerSpots || []).map(s => `${s.x},${s.y}`)
+  );
+
   // 隐藏遮罩
   gameOverScreen.classList.add("hidden");
   victoryScreen.classList.add("hidden");
@@ -240,21 +246,8 @@ async function initGame(level) {
 
   // 路径渲染
   const pathGraphics = new PIXI.Graphics();
-  if (bgUrl) {
-    // 有背景图：沿路径中心线描粗边，宽度约 2×tileSize，半透明，帮助调试对齐
-    // 正式上线可以把 alpha 调为 0 隐藏
-    const PATH_DEBUG_ALPHA = 0.18; // 调试用，对齐后改为 0
-    const PATH_W = tileSize * 2;
-    pathGraphics.lineStyle(PATH_W, 0x000000, PATH_DEBUG_ALPHA);
-    const wp = pathWaypoints;
-    if (wp.length > 0) {
-      pathGraphics.moveTo(wp[0].x, wp[0].y);
-      for (let i = 1; i < wp.length; i++) {
-        pathGraphics.lineTo(wp[i].x, wp[i].y);
-      }
-    }
-  } else {
-    // 无背景图：实色填充 tile
+  if (!bgUrl) {
+    // 无背景图：实色填充路径 tile
     const totalCells = pathCells.length;
     pathCells.forEach((cell, idx) => {
       const ratio = idx / Math.max(totalCells - 1, 1);
@@ -268,6 +261,20 @@ async function initGame(level) {
     });
   }
   boardContainer.addChild(pathGraphics);
+
+  // 塔位渲染：有 towerSpots 时显示淡色圆圈标记
+  const towerSpotGraphics = new PIXI.Graphics();
+  if (towerSpotSet.size > 0) {
+    (level.towerSpots || []).forEach(({ x, y }) => {
+      const cx = x * tileSize + tileSize / 2;
+      const cy = y * tileSize + tileSize / 2;
+      towerSpotGraphics.lineStyle(1.5, 0xffd700, 0.35);
+      towerSpotGraphics.beginFill(0xffd700, 0.06);
+      towerSpotGraphics.drawCircle(cx, cy, tileSize * 0.42);
+      towerSpotGraphics.endFill();
+    });
+  }
+  boardContainer.addChild(towerSpotGraphics);
 
   // 网格线
   const gridGraphics = new PIXI.Graphics();
@@ -529,6 +536,7 @@ function handleBoardPointerDown(event) {
   const cellKey = `${cell.x},${cell.y}`;
   if (pathKeySet.has(cellKey)) { setStatus("此处乃通路，不可筑塔", elements); return; }
   if (state.towers.some(t => t.cellKey === cellKey)) { setStatus("此格已有防御，无需再筑", elements); return; }
+  if (towerSpotSet.size > 0 && !towerSpotSet.has(cellKey)) { setStatus("此处地势不利，无法筑塔", elements); return; }
   const config = towerTypes[state.selectedTowerType];
   if (!config) return;
   if (state.gold < config.cost) { setStatus("灵石不足", elements); return; }
@@ -562,6 +570,8 @@ function canPlaceTower(cell, config) {
   if (pathKeySet.has(cellKey)) return false;
   if (state.towers.some(t => t.cellKey === cellKey)) return false;
   if (state.gold < config.cost) return false;
+  // 有塔位白名单时，只允许在白名单格建塔
+  if (towerSpotSet.size > 0 && !towerSpotSet.has(cellKey)) return false;
   return true;
 }
 
