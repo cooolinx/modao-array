@@ -12,6 +12,18 @@ export const assetUrls = {
   enemy: "assets/enemy.svg",
 };
 
+// 每章背景图（key 为章节 id，value 为图片路径）
+// 未配置的章节会 fallback 到程序生成的深色背景
+export const chapterBackgrounds = {
+  1: "assets/bg-chapter-1.png",
+  // 2: "assets/bg-chapter-2.png",  // 待生成
+  // 3: "assets/bg-chapter-3.png",
+  // 4: "assets/bg-chapter-4.png",
+  // 5: "assets/bg-chapter-5.png",
+  // 6: "assets/bg-chapter-6.png",
+  // 7: "assets/bg-chapter-7.png",
+};
+
 // 塔类型配置
 export const towerTypes = {
   basic: {

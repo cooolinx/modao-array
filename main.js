@@ -6,6 +6,7 @@ import {
   boardWidth,
   boardHeight,
   assetUrls,
+  chapterBackgrounds,
   towerTypes,
   wanguiConfig,
 } from "./src/config.js";
@@ -210,32 +211,49 @@ async function initGame(level) {
   boardContainer.hitArea = new PIXI.Rectangle(0, 0, boardWidth, boardHeight);
   app.stage.addChild(boardContainer);
 
-  // 背景
-  const background = new PIXI.Graphics();
-  background.beginFill(0x1b1f26);
-  background.drawRect(0, 0, boardWidth, boardHeight);
-  background.endFill();
-  // 装饰：散布骨骸小点
-  for (let i = 0; i < 60; i++) {
-    const r = 1 + Math.random() * 2;
-    const x = Math.random() * boardWidth;
-    const y = Math.random() * boardHeight;
-    background.beginFill(0x2a2f3b);
-    background.drawCircle(x, y, r);
+  // 背景：优先使用章节背景图，fallback 到程序生成
+  const chapterId = currentLevel ? parseInt(currentLevel.id.split("-")[0]) : 0;
+  const bgUrl = chapterBackgrounds[chapterId];
+  if (bgUrl) {
+    const bgTexture = await PIXI.Assets.load(bgUrl);
+    const bgSprite = new PIXI.Sprite(bgTexture);
+    bgSprite.width = boardWidth;
+    bgSprite.height = boardHeight;
+    boardContainer.addChild(bgSprite);
+  } else {
+    // fallback：程序生成深色背景
+    const background = new PIXI.Graphics();
+    background.beginFill(0x1b1f26);
+    background.drawRect(0, 0, boardWidth, boardHeight);
     background.endFill();
+    for (let i = 0; i < 60; i++) {
+      const r = 1 + Math.random() * 2;
+      const x = Math.random() * boardWidth;
+      const y = Math.random() * boardHeight;
+      background.beginFill(0x2a2f3b);
+      background.drawCircle(x, y, r);
+      background.endFill();
+    }
+    boardContainer.addChild(background);
   }
-  boardContainer.addChild(background);
 
   // 路径渲染（渐变色：起点绿，中间灰，终点红）
+  // 路径渲染：有背景图时用半透明叠层，无背景图时用实色
   const pathGraphics = new PIXI.Graphics();
   const totalCells = pathCells.length;
   pathCells.forEach((cell, idx) => {
     const ratio = idx / Math.max(totalCells - 1, 1);
-    let color;
-    if (ratio < 0.3) color = 0x2d4a3e;
-    else if (ratio < 0.7) color = 0x2a303b;
-    else color = 0x4a2d2d;
-    pathGraphics.beginFill(color);
+    if (bgUrl) {
+      // 有背景图：只画半透明暗色叠层，让背景图的路面透出来
+      pathGraphics.beginFill(0x000000, 0.15);
+    } else {
+      // 无背景图：实色路径
+      let color;
+      if (ratio < 0.3) color = 0x2d4a3e;
+      else if (ratio < 0.7) color = 0x2a303b;
+      else color = 0x4a2d2d;
+      pathGraphics.beginFill(color);
+    }
     pathGraphics.drawRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
     pathGraphics.endFill();
   });
