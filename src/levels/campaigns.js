@@ -4,15 +4,15 @@
  */
 
 export const campaigns = [
-  // ─── 第一章：东门·大胤西宫 ───────────────────────────────────────────────
+  // ─── 第一章：东门·碎骨关 ────────────────────────────────────────────────
   {
     id: 1,
-    name: "东门·大胤西宫",
+    name: "东门·碎骨关",
     faction: "大胤西宫",
     location: "东门",
     difficultyLabel: "初入江湖",
     difficultyClass: "diff-1",
-    description: "龙气禁卫压境，皇朝兵马叩关！",
+    description: "大胤西宫龙气禁卫压境，皇朝兵马叩关！",
     levels: [
       {
         id: "1-1",
@@ -74,15 +74,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第二章：南门·天音寺 ────────────────────────────────────────────────
+  // ─── 第二章：南门·鬼啸门 ────────────────────────────────────────────────
   {
     id: 2,
-    name: "南门·天音寺",
+    name: "南门·鬼啸门",
     faction: "天音寺",
     location: "南门",
     difficultyLabel: "初窥门径",
     difficultyClass: "diff-2",
-    description: "佛音阵阵，沙弥弟子漫山遍野！",
+    description: "天音寺佛音阵阵，沙弥弟子漫山遍野！",
     levels: [
       {
         id: "2-1",
@@ -147,15 +147,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第三章：西门·青云剑阁 ──────────────────────────────────────────────
+  // ─── 第三章：西门·裂魄口 ────────────────────────────────────────────────
   {
     id: 3,
-    name: "西门·青云剑阁",
+    name: "西门·裂魄口",
     faction: "青云剑阁",
     location: "西门",
     difficultyLabel: "剑走偏锋",
     difficultyClass: "diff-3",
-    description: "御风剑修御剑而来，快若闪电！",
+    description: "青云剑阁御风剑修御剑而来，快若闪电！",
     levels: [
       {
         id: "3-1",
@@ -223,15 +223,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第四章：北门·三清宗 ────────────────────────────────────────────────
+  // ─── 第四章：北门·阴煞台 ────────────────────────────────────────────────
   {
     id: 4,
-    name: "北门·三清宗",
+    name: "北门·阴煞台",
     faction: "三清宗",
     location: "北门",
     difficultyLabel: "道法自然",
     difficultyClass: "diff-4",
-    description: "五行道兵轮番来袭，天罚难测！",
+    description: "三清宗五行道兵轮番来袭，天罚难测！",
     levels: [
       {
         id: "4-1",
@@ -278,7 +278,7 @@ export const campaigns = [
       },
       {
         id: "4-3",
-        name: "三清法相",
+        name: "天罚法相降临",
         difficulty: "修罗战场",
         initialGold: 70,
         initialLives: 12,
@@ -302,15 +302,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第五章：空中战场·破军山 ────────────────────────────────────────────
+  // ─── 第五章：天堑·噬天岭 ────────────────────────────────────────────────
   {
     id: 5,
-    name: "空中战场·破军山",
+    name: "天堑·噬天岭",
     faction: "破军山",
-    location: "空中",
+    location: "天堑",
     difficultyLabel: "修罗战场",
     difficultyClass: "diff-5",
-    description: "陷阵营死士蜂拥而至，以命换命！",
+    description: "破军山陷阵营死士蜂拥而至，以命换命！",
     levels: [
       {
         id: "5-1",
@@ -382,15 +382,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第六章：地底·天涯书院 ──────────────────────────────────────────────
+  // ─── 第六章：地脉·黄泉道 ────────────────────────────────────────────────
   {
     id: 6,
-    name: "地底·天涯书院",
+    name: "地脉·黄泉道",
     faction: "天涯书院",
-    location: "地底",
+    location: "地脉",
     difficultyLabel: "飞升断绝",
     difficultyClass: "diff-6",
-    description: "大儒虚影引领精英修士，步步为营！",
+    description: "天涯书院大儒虚影引领精英修士，步步为营！",
     levels: [
       {
         id: "6-1",
@@ -439,7 +439,7 @@ export const campaigns = [
       },
       {
         id: "6-3",
-        name: "大儒虚影",
+        name: "大儒虚影压境",
         difficulty: "飞升断绝",
         initialGold: 50,
         initialLives: 10,
@@ -489,15 +489,15 @@ export const campaigns = [
     ],
   },
 
-  // ─── 第七章：最终决战·万劫魔宫 ─────────────────────────────────────────
+  // ─── 第七章：魔宫·轮劫殿 ────────────────────────────────────────────────
   {
     id: 7,
-    name: "最终决战·万劫魔宫",
+    name: "魔宫·轮劫殿",
     faction: "六宗围攻",
-    location: "万劫魔宫",
+    location: "魔宫",
     difficultyLabel: "万劫不复",
     difficultyClass: "diff-7",
-    description: "六大宗门合力围攻，此战决定魔道存亡！",
+    description: "六大宗门合力围攻内殿，此战决定魔道存亡！",
     levels: [
       {
         id: "7-1",
