@@ -5,8 +5,6 @@ import {
   gridHeight,
   boardWidth,
   boardHeight,
-  bgAspectW,
-  bgAspectH,
   assetUrls,
   chapterBackgrounds,
   towerTypes,
@@ -219,9 +217,9 @@ async function initGame(level) {
   if (bgUrl) {
     const bgTexture = await PIXI.Assets.load(bgUrl);
     const bgSprite = new PIXI.Sprite(bgTexture);
-    // 背景图按原始比例铺满（bgAspectW × bgAspectH），不压扁
-    bgSprite.width = bgAspectW;
-    bgSprite.height = bgAspectH;
+    // 背景图填满游戏网格区域（boardWidth × boardHeight）
+    bgSprite.width = boardWidth;
+    bgSprite.height = boardHeight;
     boardContainer.addChild(bgSprite);
   } else {
     // fallback：程序生成深色背景
@@ -388,27 +386,20 @@ function layoutBoard() {
   if (!app) return;
   app.renderer.resize(window.innerWidth, window.innerHeight);
 
-  const HUD_H = 80; // 底部 HUD 固定高度
+  const HUD_H = 80;
   const hudHeight = state.uiCollapsed ? 0 : HUD_H;
   const avW = app.screen.width;
   const avH = app.screen.height - hudHeight;
 
-  // 有背景图时，按背景图比例缩放；无背景图时按游戏网格比例
-  const chapterId = currentLevel ? parseInt(currentLevel.id.split("-")[0]) : 0;
-  const hasBg = !!chapterBackgrounds[chapterId];
-  const refW = hasBg ? bgAspectW : boardWidth;
-  const refH = hasBg ? bgAspectH : boardHeight;
-
-  const scale = Math.min(avW / refW, avH / refH);
+  const scale = Math.min(avW / boardWidth, avH / boardHeight);
   boardContainer.scale.set(scale);
 
-  const sw = refW * scale;
-  const sh = refH * scale;
+  const sw = boardWidth * scale;
+  const sh = boardHeight * scale;
   boardContainer.x = Math.round((avW - sw) / 2);
-  boardContainer.y = 0;
+  boardContainer.y = Math.round((avH - sh) / 2);
 
-  // 同步更新 boardContainer hitArea 为实际渲染尺寸
-  boardContainer.hitArea = new PIXI.Rectangle(0, 0, refW, refH);
+  boardContainer.hitArea = new PIXI.Rectangle(0, 0, boardWidth, boardHeight);
 }
 
 // ─── 游戏主循环 ───────────────────────────────────────────────────────────────

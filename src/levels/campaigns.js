@@ -22,8 +22,8 @@ export const campaigns = [
         initialLives: 20,
         waveCount: 4,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 7, y: 9 }, { x: 7, y: 4 },
-          { x: 16, y: 4 }, { x: 16, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 9, y: 9 }, { x: 9, y: 4 },
+          { x: 21, y: 4 }, { x: 21, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 4 }] },
@@ -40,8 +40,8 @@ export const campaigns = [
         initialLives: 18,
         waveCount: 5,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 7, y: 9 }, { x: 7, y: 4 },
-          { x: 16, y: 4 }, { x: 16, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 9, y: 9 }, { x: 9, y: 4 },
+          { x: 21, y: 4 }, { x: 21, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 5 }, { type: "tank", count: 1 }] },
@@ -59,8 +59,8 @@ export const campaigns = [
         initialLives: 15,
         waveCount: 6,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 7, y: 9 }, { x: 7, y: 4 },
-          { x: 16, y: 4 }, { x: 16, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 9, y: 9 }, { x: 9, y: 4 },
+          { x: 21, y: 4 }, { x: 21, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 6 }, { type: "tank", count: 2 }] },
@@ -92,8 +92,8 @@ export const campaigns = [
         initialLives: 18,
         waveCount: 5,
         pathNodes: [
-          { x: 0, y: 5 }, { x: 8, y: 5 }, { x: 8, y: 13 },
-          { x: 15, y: 13 }, { x: 15, y: 5 }, { x: 23, y: 5 },
+          { x: 0, y: 5 }, { x: 11, y: 5 }, { x: 11, y: 13 },
+          { x: 20, y: 13 }, { x: 20, y: 5 }, { x: 31, y: 5 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 8 }] },
@@ -111,8 +111,8 @@ export const campaigns = [
         initialLives: 16,
         waveCount: 6,
         pathNodes: [
-          { x: 0, y: 5 }, { x: 8, y: 5 }, { x: 8, y: 13 },
-          { x: 15, y: 13 }, { x: 15, y: 5 }, { x: 23, y: 5 },
+          { x: 0, y: 5 }, { x: 11, y: 5 }, { x: 11, y: 13 },
+          { x: 20, y: 13 }, { x: 20, y: 5 }, { x: 31, y: 5 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 8 }, { type: "tank", count: 2 }] },
@@ -131,8 +131,8 @@ export const campaigns = [
         initialLives: 14,
         waveCount: 7,
         pathNodes: [
-          { x: 0, y: 5 }, { x: 8, y: 5 }, { x: 8, y: 13 },
-          { x: 15, y: 13 }, { x: 15, y: 5 }, { x: 23, y: 5 },
+          { x: 0, y: 5 }, { x: 11, y: 5 }, { x: 11, y: 13 },
+          { x: 20, y: 13 }, { x: 20, y: 5 }, { x: 31, y: 5 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 10 }, { type: "tank", count: 2 }] },
@@ -165,9 +165,9 @@ export const campaigns = [
         initialLives: 16,
         waveCount: 5,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
-          { x: 10, y: 3 }, { x: 10, y: 14 }, { x: 18, y: 14 },
-          { x: 18, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 9 }, { x: 5, y: 9 }, { x: 5, y: 3 },
+          { x: 13, y: 3 }, { x: 13, y: 14 }, { x: 24, y: 14 },
+          { x: 24, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 8 }] },
@@ -185,9 +185,9 @@ export const campaigns = [
         initialLives: 14,
         waveCount: 6,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
-          { x: 10, y: 3 }, { x: 10, y: 14 }, { x: 18, y: 14 },
-          { x: 18, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 9 }, { x: 5, y: 9 }, { x: 5, y: 3 },
+          { x: 13, y: 3 }, { x: 13, y: 14 }, { x: 24, y: 14 },
+          { x: 24, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 10 }, { type: "soldier", count: 5 }] },
@@ -206,9 +206,9 @@ export const campaigns = [
         initialLives: 12,
         waveCount: 7,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
-          { x: 10, y: 3 }, { x: 10, y: 14 }, { x: 18, y: 14 },
-          { x: 18, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 9 }, { x: 5, y: 9 }, { x: 5, y: 3 },
+          { x: 13, y: 3 }, { x: 13, y: 14 }, { x: 24, y: 14 },
+          { x: 24, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 12 }, { type: "soldier", count: 5 }] },
@@ -241,9 +241,9 @@ export const campaigns = [
         initialLives: 15,
         waveCount: 6,
         pathNodes: [
-          { x: 0, y: 3 }, { x: 5, y: 3 }, { x: 5, y: 9 },
-          { x: 12, y: 9 }, { x: 12, y: 3 }, { x: 18, y: 3 },
-          { x: 18, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 9 },
+          { x: 16, y: 9 }, { x: 16, y: 3 }, { x: 24, y: 3 },
+          { x: 24, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 6 }, { type: "fast", count: 4 }] },
@@ -262,9 +262,9 @@ export const campaigns = [
         initialLives: 13,
         waveCount: 7,
         pathNodes: [
-          { x: 0, y: 3 }, { x: 5, y: 3 }, { x: 5, y: 9 },
-          { x: 12, y: 9 }, { x: 12, y: 3 }, { x: 18, y: 3 },
-          { x: 18, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 9 },
+          { x: 16, y: 9 }, { x: 16, y: 3 }, { x: 24, y: 3 },
+          { x: 24, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 5 }] },
@@ -284,9 +284,9 @@ export const campaigns = [
         initialLives: 12,
         waveCount: 8,
         pathNodes: [
-          { x: 0, y: 3 }, { x: 5, y: 3 }, { x: 5, y: 9 },
-          { x: 12, y: 9 }, { x: 12, y: 3 }, { x: 18, y: 3 },
-          { x: 18, y: 13 }, { x: 23, y: 13 },
+          { x: 0, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 9 },
+          { x: 16, y: 9 }, { x: 16, y: 3 }, { x: 24, y: 3 },
+          { x: 24, y: 13 }, { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 10 }, { type: "fast", count: 6 }] },
@@ -320,9 +320,9 @@ export const campaigns = [
         initialLives: 14,
         waveCount: 6,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 3 },
-          { x: 9, y: 3 }, { x: 9, y: 14 }, { x: 15, y: 14 },
-          { x: 15, y: 5 }, { x: 20, y: 5 }, { x: 20, y: 12 }, { x: 23, y: 12 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
+          { x: 12, y: 3 }, { x: 12, y: 14 }, { x: 20, y: 14 },
+          { x: 20, y: 5 }, { x: 27, y: 5 }, { x: 27, y: 12 }, { x: 31, y: 12 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 15 }] },
@@ -341,9 +341,9 @@ export const campaigns = [
         initialLives: 13,
         waveCount: 7,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 3 },
-          { x: 9, y: 3 }, { x: 9, y: 14 }, { x: 15, y: 14 },
-          { x: 15, y: 5 }, { x: 20, y: 5 }, { x: 20, y: 12 }, { x: 23, y: 12 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
+          { x: 12, y: 3 }, { x: 12, y: 14 }, { x: 20, y: 14 },
+          { x: 20, y: 5 }, { x: 27, y: 5 }, { x: 27, y: 12 }, { x: 31, y: 12 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 18 }, { type: "soldier", count: 5 }] },
@@ -363,9 +363,9 @@ export const campaigns = [
         initialLives: 11,
         waveCount: 9,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 3 },
-          { x: 9, y: 3 }, { x: 9, y: 14 }, { x: 15, y: 14 },
-          { x: 15, y: 5 }, { x: 20, y: 5 }, { x: 20, y: 12 }, { x: 23, y: 12 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 3 },
+          { x: 12, y: 3 }, { x: 12, y: 14 }, { x: 20, y: 14 },
+          { x: 20, y: 5 }, { x: 27, y: 5 }, { x: 27, y: 12 }, { x: 31, y: 12 },
         ],
         waveOverrides: [
           { enemies: [{ type: "fast", count: 20 }, { type: "soldier", count: 6 }] },
@@ -400,9 +400,9 @@ export const campaigns = [
         initialLives: 12,
         waveCount: 7,
         pathNodes: [
-          { x: 0, y: 6 }, { x: 4, y: 6 }, { x: 4, y: 14 },
-          { x: 10, y: 14 }, { x: 10, y: 3 }, { x: 16, y: 3 },
-          { x: 16, y: 11 }, { x: 21, y: 11 }, { x: 21, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 6 }, { x: 5, y: 6 }, { x: 5, y: 14 },
+          { x: 13, y: 14 }, { x: 13, y: 3 }, { x: 21, y: 3 },
+          { x: 21, y: 11 }, { x: 28, y: 11 }, { x: 28, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 6 }] },
@@ -422,9 +422,9 @@ export const campaigns = [
         initialLives: 11,
         waveCount: 8,
         pathNodes: [
-          { x: 0, y: 6 }, { x: 4, y: 6 }, { x: 4, y: 14 },
-          { x: 10, y: 14 }, { x: 10, y: 3 }, { x: 16, y: 3 },
-          { x: 16, y: 11 }, { x: 21, y: 11 }, { x: 21, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 6 }, { x: 5, y: 6 }, { x: 5, y: 14 },
+          { x: 13, y: 14 }, { x: 13, y: 3 }, { x: 21, y: 3 },
+          { x: 21, y: 11 }, { x: 28, y: 11 }, { x: 28, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 10 }, { type: "fast", count: 7 }] },
@@ -445,9 +445,9 @@ export const campaigns = [
         initialLives: 10,
         waveCount: 9,
         pathNodes: [
-          { x: 0, y: 6 }, { x: 4, y: 6 }, { x: 4, y: 14 },
-          { x: 10, y: 14 }, { x: 10, y: 3 }, { x: 16, y: 3 },
-          { x: 16, y: 11 }, { x: 21, y: 11 }, { x: 21, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 6 }, { x: 5, y: 6 }, { x: 5, y: 14 },
+          { x: 13, y: 14 }, { x: 13, y: 3 }, { x: 21, y: 3 },
+          { x: 21, y: 11 }, { x: 28, y: 11 }, { x: 28, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 10 }, { type: "fast", count: 8 }, { type: "tank", count: 3 }] },
@@ -469,9 +469,9 @@ export const campaigns = [
         initialLives: 9,
         waveCount: 10,
         pathNodes: [
-          { x: 0, y: 6 }, { x: 4, y: 6 }, { x: 4, y: 14 },
-          { x: 10, y: 14 }, { x: 10, y: 3 }, { x: 16, y: 3 },
-          { x: 16, y: 11 }, { x: 21, y: 11 }, { x: 21, y: 6 }, { x: 23, y: 6 },
+          { x: 0, y: 6 }, { x: 5, y: 6 }, { x: 5, y: 14 },
+          { x: 13, y: 14 }, { x: 13, y: 3 }, { x: 21, y: 3 },
+          { x: 21, y: 11 }, { x: 28, y: 11 }, { x: 28, y: 6 }, { x: 31, y: 6 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 12 }, { type: "fast", count: 10 }, { type: "tank", count: 4 }] },
@@ -507,10 +507,10 @@ export const campaigns = [
         initialLives: 10,
         waveCount: 8,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 2 },
-          { x: 8, y: 2 }, { x: 8, y: 15 }, { x: 14, y: 15 },
-          { x: 14, y: 5 }, { x: 19, y: 5 }, { x: 19, y: 13 },
-          { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 2 },
+          { x: 11, y: 2 }, { x: 11, y: 15 }, { x: 19, y: 15 },
+          { x: 19, y: 5 }, { x: 25, y: 5 }, { x: 25, y: 13 },
+          { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 10 }, { type: "fast", count: 8 }, { type: "tank", count: 4 }] },
@@ -531,10 +531,10 @@ export const campaigns = [
         initialLives: 10,
         waveCount: 10,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 2 },
-          { x: 8, y: 2 }, { x: 8, y: 15 }, { x: 14, y: 15 },
-          { x: 14, y: 5 }, { x: 19, y: 5 }, { x: 19, y: 13 },
-          { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 2 },
+          { x: 11, y: 2 }, { x: 11, y: 15 }, { x: 19, y: 15 },
+          { x: 19, y: 5 }, { x: 25, y: 5 }, { x: 25, y: 13 },
+          { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 12 }, { type: "fast", count: 12 }, { type: "tank", count: 5 }] },
@@ -557,10 +557,10 @@ export const campaigns = [
         initialLives: 10,
         waveCount: 11,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 2 },
-          { x: 8, y: 2 }, { x: 8, y: 15 }, { x: 14, y: 15 },
-          { x: 14, y: 5 }, { x: 19, y: 5 }, { x: 19, y: 13 },
-          { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 2 },
+          { x: 11, y: 2 }, { x: 11, y: 15 }, { x: 19, y: 15 },
+          { x: 19, y: 5 }, { x: 25, y: 5 }, { x: 25, y: 13 },
+          { x: 31, y: 13 },
         ],
         waveOverrides: [
           { enemies: [{ type: "soldier", count: 14 }, { type: "fast", count: 14 }, { type: "tank", count: 6 }] },
@@ -584,10 +584,10 @@ export const campaigns = [
         initialLives: 10,
         waveCount: 12,
         pathNodes: [
-          { x: 0, y: 9 }, { x: 3, y: 9 }, { x: 3, y: 2 },
-          { x: 8, y: 2 }, { x: 8, y: 15 }, { x: 14, y: 15 },
-          { x: 14, y: 5 }, { x: 19, y: 5 }, { x: 19, y: 13 },
-          { x: 23, y: 13 },
+          { x: 0, y: 9 }, { x: 4, y: 9 }, { x: 4, y: 2 },
+          { x: 11, y: 2 }, { x: 11, y: 15 }, { x: 19, y: 15 },
+          { x: 19, y: 5 }, { x: 25, y: 5 }, { x: 25, y: 13 },
+          { x: 31, y: 13 },
         ],
         isFinalLevel: true,  // 通关后触发特殊结算
         waveOverrides: [

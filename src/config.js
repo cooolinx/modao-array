@@ -1,15 +1,11 @@
 // 游戏常量配置
 
 export const tileSize = 64;
-export const gridWidth = 24;
+export const gridWidth = 32;   // 改为 32（原 24），使宽高比 32:18=1.78 ≈ 背景图 1.79
 export const gridHeight = 18;
 
-export const boardWidth = tileSize * gridWidth;
-export const boardHeight = tileSize * gridHeight;
-
-// 背景图原始宽高比（2752×1536），用于保持比例不压扁
-export const bgAspectW = 2752;
-export const bgAspectH = 1536;
+export const boardWidth = tileSize * gridWidth;   // 2048
+export const boardHeight = tileSize * gridHeight; // 1152
 
 export const assetUrls = {
   tower: "assets/tower.svg",
