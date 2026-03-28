@@ -44,7 +44,7 @@ export function updateEnemies(state, deltaSec, deps) {
       enemy.sprite.y += (dy / distance) * step;
     }
 
-    enemy.updateHpBar();
+    enemy.updateHpBar(deltaSec);
   }
 }
 
@@ -53,13 +53,24 @@ export function updateEnemies(state, deltaSec, deps) {
  * @param {Object} state - 游戏状态
  * @param {Object} enemy - 被击杀的敌人
  * @param {number} index - 在数组中的索引
- * @param {Object} deps - 依赖 { enemiesLayer, elements }
+ * @param {Object} deps - 依赖 { enemiesLayer, elements, effectSystem }
  */
 export function handleEnemyKilled(state, enemy, index, deps) {
-  const { enemiesLayer, elements } = deps;
+  const { enemiesLayer, elements, effectSystem } = deps;
   state.gold += enemy.reward;
   updateUI(state, elements);
   playEnemyDie();
+  
+  // 生成死亡特效
+  if (effectSystem) {
+    effectSystem.spawnDeathEffect({
+      x: enemy.sprite.x,
+      y: enemy.sprite.y,
+      color: enemy.type === 'fast' ? 0x00ff00 : 0xff4444, // 快速敌人绿色，其他红色
+      particleCount: 12,
+    });
+  }
+  
   removeEnemyAt(state, index, enemiesLayer);
 }
 

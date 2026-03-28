@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <!-- 渐变定义 -->
+    <!-- 道袍主色渐变 -->
+    <linearGradient id="robeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6a8890"/>
+      <stop offset="50%" stop-color="#4a6870"/>
+      <stop offset="100%" stop-color="#2a3840"/>
+    </linearGradient>
+    
+    <!-- 皮肤渐变 -->
+    <linearGradient id="skinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5d5b8"/>
+      <stop offset="100%" stop-color="#e0c0a0"/>
+    </linearGradient>
+    
+    <!-- 金属渐变（剑） -->
+    <linearGradient id="bladeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="50%" stop-color="#c0c8d0"/>
+      <stop offset="100%" stop-color="#a0a8b0"/>
+    </linearGradient>
+    
+    <!-- 发光效果 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 阴影 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- ==================== 底层：光环/影子 ==================== -->
+  <ellipse cx="32" cy="58" rx="14" ry="4" fill="#000000" opacity="0.2"/>
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#84c7ff" stroke-width="0.8" stroke-opacity="0.25"/>
+  
+  <!-- ==================== 第一层：身体基础 ==================== -->
+  <!-- 道袍/身体 -->
+  <path d="M24 52 L40 52 L38 28 L26 28 Z" 
+        fill="url(#robeGradient)" 
+        stroke="#3a4850" 
+        stroke-width="1"
+        filter="url(#shadow)"/>
+  
+  <!-- 道袍下摆装饰 -->
+  <path d="M24 52 L26 48 L28 52 L30 48 L32 52 L34 48 L36 52 L38 48 L40 52" 
+        fill="none" 
+        stroke="#5a6870" 
+        stroke-width="0.8"/>
+  
+  <!-- 腰带 -->
+  <rect x="26" y="38" width="12" height="4" rx="1" 
+        fill="#3a4850" 
+        stroke="#5a6870" 
+        stroke-width="0.5"/>
+  <circle cx="32" cy="40" r="1.5" fill="#84c7ff" opacity="0.8"/>
+  
+  <!-- ==================== 第二层：头部 ==================== -->
+  <!-- 脖子 -->
+  <rect x="29" y="26" width="6" height="5" fill="url(#skinGradient)"/>
+  
+  <!-- 头部基础 -->
+  <ellipse cx="32" cy="22" rx="8" ry="9" fill="url(#skinGradient)" filter="url(#shadow)"/>
+  
+  <!-- 头发/后发 -->
+  <path d="M24 20 Q22 24 24 28" 
+        fill="none" 
+        stroke="#2a3840" 
+        stroke-width="2" 
+        stroke-linecap="round"/>
+  <path d="M40 20 Q42 24 40 28" 
+        fill="none" 
+        stroke="#2a3840" 
+        stroke-width="2" 
+        stroke-linecap="round"/>
+  
+  <!-- 发髻（道冠） -->
+  <ellipse cx="32" cy="15" rx="7" ry="4" fill="#2a3840"/>
+  <ellipse cx="32" cy="14" rx="5" ry="2.5" fill="#3a4850"/>
+  
+  <!-- 道冠装饰（蓝色宝珠） -->
+  <circle cx="32" cy="13" r="2" fill="#84c7ff" filter="url(#glow)"/>
+  <circle cx="32" cy="13" r="1" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- 面部特征 -->
+  <!-- 眼睛 -->
+  <ellipse cx="29" cy="21" rx="1.8" ry="2" fill="#2a3840"/>
+  <ellipse cx="35" cy="21" rx="1.8" ry="2" fill="#2a3840"/>
+  <circle cx="29.5" cy="20.5" r="0.8" fill="#ffffff"/>
+  <circle cx="35.5" cy="20.5" r="0.8" fill="#ffffff"/>
+  
+  <!-- 眉毛 -->
+  <path d="M27 19 L31 19.5" stroke="#2a3840" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M37 19 L33 19.5" stroke="#2a3840" stroke-width="0.8" stroke-linecap="round"/>
+  
+  <!-- 嘴巴 -->
+  <path d="M30 25 Q32 26 34 25" fill="none" stroke="#c0a090" stroke-width="0.6" stroke-linecap="round"/>
+  
+  <!-- ==================== 第三层：手臂/手 ==================== -->
+  <!-- 左臂 -->
+  <path d="M26 30 Q22 34 20 38" 
+        fill="none" 
+        stroke="url(#robeGradient)" 
+        stroke-width="3.5" 
+        stroke-linecap="round"/>
+  
+  <!-- 右臂 -->
+  <path d="M38 30 Q42 34 46 36" 
+        fill="none" 
+        stroke="url(#robeGradient)" 
+        stroke-width="3.5" 
+        stroke-linecap="round"/>
+  
+  <!-- 左手（握剑姿势） -->
+  <circle cx="20" cy="38" r="2.5" fill="url(#skinGradient)"/>
+  
+  <!-- 右手 -->
+  <circle cx="46" cy="36" r="2.5" fill="url(#skinGradient)"/>
+  
+  <!-- ==================== 第四层：武器（剑） ==================== -->
+  <!-- 剑鞘/下部分 -->
+  <rect x="14" y="40" width="3" height="14" rx="1" fill="#3a2820" transform="rotate(-15 15.5 47)"/>
+  
+  <!-- 剑柄 -->
+  <rect x="16" y="34" width="4" height="8" rx="1" fill="#5a4840" transform="rotate(-15 18 38)"/>
+  <ellipse cx="18" cy="35" rx="3" ry="1.5" fill="#84c7ff" transform="rotate(-15 18 35)"/>
+  
+  <!-- 剑格（护手） -->
+  <rect x="14" y="32" width="8" height="2" rx="0.5" fill="#84c7ff" transform="rotate(-15 18 33)"/>
+  
+  <!-- 剑身 -->
+  <path d="M17 32 L20 14 L22 14 L25 32" 
+        fill="url(#bladeGradient)" 
+        stroke="#90a0b0" 
+        stroke-width="0.5"
+        filter="url(#glow)"/>
+  
+  <!-- 剑尖高光 -->
+  <line x1="21" y1="14" x2="21" y2="18" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+  
+  <!-- 剑气特效（可选） -->
+  <path d="M19 12 Q21 8 23 12" 
+        fill="none" 
+        stroke="#84c7ff" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        opacity="0.4"
+        filter="url(#glow)"/>
+  
+  <!-- ==================== 第五层：装饰/特效 ==================== -->
+  <!-- 衣领 -->
+  <path d="M28 27 L32 30 L36 27" 
+        fill="none" 
+        stroke="#5a6870" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- 胸前符文（宗门标志） -->
+  <circle cx="32" cy="33" r="3" fill="none" stroke="#84c7ff" stroke-width="0.8" opacity="0.6"/>
+  <path d="M32 31 L32 35 M30 33 L34 33" stroke="#84c7ff" stroke-width="0.6" opacity="0.6"/>
+  
+  <!-- 飘带/衣带（动态感） -->
+  <path d="M24 28 Q18 32 16 38" 
+        fill="none" 
+        stroke="#6a8890" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        opacity="0.7"/>
+  <path d="M40 28 Q46 32 48 38" 
+        fill="none" 
+        stroke="#6a8890" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        opacity="0.7"/>
+  
+  <!-- 光晕层（最上层） -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#84c7ff" stroke-width="0.3" stroke-opacity="0.15"/>
+</svg>

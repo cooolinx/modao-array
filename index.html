@@ -25,6 +25,7 @@
           <p>⚔️ 击退正道获得灵石</p>
           <p>🛡️ 守护万骨山气运</p>
         </div>
+        <a href="dev.html" class="dev-entry">🛠 开发者工具</a>
       </div>
     </div>
 
@@ -81,6 +82,8 @@
         </div>
         <!-- 右：行动按钮 -->
         <div class="hud-right">
+          <button id="speed-btn">⏩ 1x</button>
+          <button id="pause-btn">⏸️ 暂停</button>
           <button id="wangui-btn">
             👻 万鬼大阵<br><small>80💎 · <span id="wangui-cd">就绪</span></small>
           </button>
@@ -88,7 +91,53 @@
           <button id="toggle-ui" class="ui-toggle" aria-expanded="true">收起</button>
         </div>
       </div>
+      
+      <!-- 塔选择面板（升级/出售） -->
+      <div id="tower-selection-panel" class="tower-selection-panel hidden">
+        <div class="tower-panel-header">
+          <span id="tower-panel-name" class="tower-panel-name">塔名称</span>
+          <button id="tower-panel-close" class="tower-panel-close" onclick="deselectTower()">✕</button>
+        </div>
+        <div class="tower-panel-stats">
+          <div class="stat-row">
+            <span class="stat-label">等级：</span>
+            <span id="tower-panel-level" class="stat-value">Lv.1 / 5</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">伤害：</span>
+            <span id="tower-panel-damage" class="stat-value">12</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">射程：</span>
+            <span id="tower-panel-range" class="stat-value">150</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">攻速：</span>
+            <span id="tower-panel-firerate" class="stat-value">1.00</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">DPS：</span>
+            <span id="tower-panel-dps" class="stat-value">12</span>
+          </div>
+        </div>
+        <div class="tower-panel-actions">
+          <button id="tower-upgrade-btn" class="tower-action-btn upgrade-btn">
+            <span class="btn-text">升级</span>
+            <span id="tower-upgrade-cost" class="btn-cost">40💎</span>
+          </button>
+          <button id="tower-sell-btn" class="tower-action-btn sell-btn">
+            <span class="btn-text">出售</span>
+            <span id="tower-sell-refund" class="btn-refund">30💎</span>
+          </button>
+        </div>
+      </div>
       <div id="status">万劫魔宫，严阵以待</div>
+      <div id="game-status-display" class="game-status-display"></div>
+
+      <!-- 波次倒计时遮罩 -->
+      <div id="countdown-overlay" class="countdown-overlay hidden">
+        <div class="countdown-number" id="countdown-text">3</div>
+      </div>
 
       <!-- 游戏结束遮罩 -->
       <div id="game-over-screen" class="game-overlay hidden">

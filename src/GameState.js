@@ -10,6 +10,7 @@ export function createInitialState() {
     lives: 12,
     wave: 0,
     selectedTowerType: null, // null 表示未选择，否则为塔类型字符串（"basic"|"cannon"|"slow"）
+    selectedTower: null,     // 当前选中的已建造塔（用于升级/出售）
     waveInProgress: false,
     gameOver: false,
     uiCollapsed: false,

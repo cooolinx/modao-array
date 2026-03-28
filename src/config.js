@@ -9,7 +9,14 @@ export const boardHeight = tileSize * gridHeight; // 1152
 
 export const assetUrls = {
   tower: "assets/tower.svg",
-  enemy: "assets/enemy.svg",
+  enemy: "assets/enemy.svg", // fallback
+  enemySoldier: "assets/enemy-soldier.svg",
+  enemyFast: "assets/enemy-fast.svg",
+  enemyTank: "assets/enemy-tank.svg",
+  // 行走动画 sprite sheet（4帧横排）
+  enemySoldierWalk: "assets/enemy-soldier-walk.png",
+  enemyFastWalk: "assets/enemy-fast-walk.png",
+  enemyTankWalk: "assets/enemy-tank-walk.png",
 };
 
 // 每章背景图（key 为章节 id，value 为图片路径）
@@ -79,7 +86,8 @@ export const enemyTypes = {
     reward: 12,
     rewardPerWave: 2,
     size: 36,
-    tint: 0xffffff, // 贴图着色
+    assetUrl: assetUrls.enemySoldier,
+    animationSpeed: 0.12,
   },
   fast: {
     type: "fast",
@@ -91,7 +99,8 @@ export const enemyTypes = {
     reward: 8,
     rewardPerWave: 1,
     size: 28,
-    tint: 0x88ffcc,
+    assetUrl: assetUrls.enemyFast,
+    animationSpeed: 0.22,
   },
   tank: {
     type: "tank",
@@ -103,7 +112,8 @@ export const enemyTypes = {
     reward: 25,
     rewardPerWave: 4,
     size: 48,
-    tint: 0xffdd44,
+    assetUrl: assetUrls.enemyTank,
+    animationSpeed: 0.07,
   },
 };
 
@@ -126,4 +136,18 @@ export const wanguiConfig = {
   ghostDamage: 30,    // 每个鬼兵碰撞伤害
   ghostSpeed: 200,    // 鬼兵速度（反向沿路径跑）
   ghostRadius: 20,    // 碰撞半径
+};
+
+// 塔升级配置
+export const towerUpgradeConfig = {
+  maxLevel: 5,              // 最高等级
+  damageBonusPerLevel: 0.20,  // 每级伤害提升 20%
+  rangeBonusPerLevel: 0.10,   // 每级射程提升 10%
+  fireRateBonusPerLevel: 0.05, // 每级攻速提升 5%
+  costMultiplier: 0.8,        // 升级成本系数
+};
+
+// 塔出售配置
+export const towerSellConfig = {
+  refundRate: 0.6,  // 出售退款比例 60%
 };

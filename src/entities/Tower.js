@@ -1,5 +1,5 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
-import { tileSize, towerTypes } from "../config.js";
+import { tileSize, towerTypes, towerUpgradeConfig } from "../config.js";
 
 export class Tower {
   /**
@@ -10,11 +10,19 @@ export class Tower {
    */
   constructor({ cell, texture, config = towerTypes.basic }) {
     this.type = config.type || "basic";
+    this.baseRange = config.range;
+    this.baseFireRate = config.fireRate;
+    this.baseDamage = config.damage;
+    this.baseCost = config.cost || 50;
     this.range = config.range;
     this.fireRate = config.fireRate;
     this.damage = config.damage;
     this.cooldown = 0;
     this.cellKey = `${cell.x},${cell.y}`;
+    
+    // 等级系统
+    this.level = 1;
+    this.maxLevel = towerUpgradeConfig.maxLevel;
 
     // cannon 特有属性
     this.splashRadius = config.splashRadius || 0;
@@ -75,5 +83,95 @@ export class Tower {
     }
 
     this.sprite = container;
+  }
+
+  /**
+   * 计算升级成本
+   * @returns {number} 升级所需灵石
+   */
+  getUpgradeCost() {
+    if (this.level >= this.maxLevel) return 0;
+    return Math.floor(this.baseCost * this.level * towerUpgradeConfig.costMultiplier);
+  }
+
+  /**
+   * 计算出售退款
+   * @returns {number} 出售可获得的灵石
+   */
+  getSellRefund() {
+    const totalSpent = this.baseCost + this.getTotalUpgradeCost();
+    return Math.floor(totalSpent * towerSellConfig.refundRate);
+  }
+
+  /**
+   * 计算已花费的升级总成本
+   * @returns {number}
+   */
+  getTotalUpgradeCost() {
+    let total = 0;
+    for (let i = 1; i < this.level; i++) {
+      total += Math.floor(this.baseCost * i * towerUpgradeConfig.costMultiplier);
+    }
+    return total;
+  }
+
+  /**
+   * 升级塔
+   * @returns {boolean} 是否升级成功
+   */
+  upgrade() {
+    if (this.level >= this.maxLevel) return false;
+    
+    this.level++;
+    
+    // 应用属性提升
+    this.damage = this.baseDamage * (1 + towerUpgradeConfig.damageBonusPerLevel * (this.level - 1));
+    this.range = this.baseRange * (1 + towerUpgradeConfig.rangeBonusPerLevel * (this.level - 1));
+    this.fireRate = this.baseFireRate * (1 + towerUpgradeConfig.fireRateBonusPerLevel * (this.level - 1));
+    
+    // 更新射程圈显示
+    this.updateRangeRing();
+    
+    return true;
+  }
+
+  /**
+   * 更新射程圈显示
+   */
+  updateRangeRing() {
+    const rangeRing = this.sprite.children.find(c => c instanceof PIXI.Graphics && c === this.sprite.children[0]);
+    if (rangeRing) {
+      rangeRing.clear();
+      const rangeColor = this.getRangeColor();
+      rangeRing.lineStyle(2, rangeColor, 0.22);
+      rangeRing.drawCircle(0, 0, this.range);
+    }
+  }
+
+  /**
+   * 获取射程圈颜色（根据等级变化）
+   * @returns {number}
+   */
+  getRangeColor() {
+    const colors = [0x6fe3ff, 0x88ff88, 0xffff88, 0xffaa88, 0xff66ff];
+    return colors[Math.min(this.level - 1, colors.length - 1)] || 0x6fe3ff;
+  }
+
+  /**
+   * 获取塔的详细信息
+   * @returns {Object}
+   */
+  getInfo() {
+    return {
+      type: this.type,
+      level: this.level,
+      maxLevel: this.maxLevel,
+      damage: Math.round(this.damage),
+      range: Math.round(this.range),
+      fireRate: this.fireRate.toFixed(2),
+      dps: Math.round(this.damage * this.fireRate),
+      upgradeCost: this.getUpgradeCost(),
+      sellRefund: this.getSellRefund(),
+    };
   }
 }

@@ -18,9 +18,11 @@ import { updateSpawning, buildSpawnQueueFromOverrides } from "./src/systems/Spaw
 import { updateTowers, updateBullets } from "./src/systems/CombatSystem.js";
 import { updateEnemies } from "./src/systems/EnemySystem.js";
 import { updateGhosts } from "./src/systems/GhostSystem.js";
-import { updateUI, updateButtons, setStatus, updateWanguiBtn } from "./src/ui/HUD.js";
+import { updateUI, updateButtons, setStatus, updateWanguiBtn, updateGameStatus, updateTowerSelectionPanel } from "./src/ui/HUD.js";
 import { campaigns } from "./src/levels/campaigns.js";
 import { playWanguiActivate } from "./src/audio/SoundSystem.js";
+import { EffectSystem } from "./src/systems/EffectSystem.js";
+import { TimeSystem } from "./src/systems/TimeSystem.js";
 
 // ─── DOM 元素 ────────────────────────────────────────────────────────────────
 const startScreen = document.getElementById("start-screen");
@@ -37,8 +39,10 @@ const gameOverScreen = document.getElementById("game-over-screen");
 const victoryScreen = document.getElementById("victory-screen");
 const campaignScreen = document.getElementById("campaign-screen");
 const levelScreen = document.getElementById("level-screen");
+const countdownOverlay = document.getElementById("countdown-overlay");
+const countdownText = document.getElementById("countdown-text");
 
-const elements = { goldEl, livesEl, waveEl, statusEl, startWaveButton };
+const elements = { goldEl, livesEl, waveEl, statusEl, startWaveButton, countdownOverlay, countdownText };
 
 // ─── 游戏状态 ────────────────────────────────────────────────────────────────
 let state = createInitialState();
@@ -48,6 +52,10 @@ let pathKeySet = new Set();
 let pathWaypoints = [];
 let towerSpotSet = new Set(); // 允许建塔的格子
 
+// 倒计时状态
+let countdownActive = false;
+let countdownRemaining = 0;
+
 // PIXI 层引用
 let app;
 let boardContainer;
@@ -55,8 +63,16 @@ let towersLayer;
 let enemiesLayer;
 let bulletsLayer;
 let ghostsLayer;
+let effectsLayer;
 let placementHighlight;
+let towerRangeHighlight;
 let textures;
+
+// 特效系统
+let effectSystem;
+
+// 时间系统
+let timeSystem;
 
 // ─── 进度存储 ────────────────────────────────────────────────────────────────
 function getCompleted() {
@@ -102,7 +118,7 @@ function renderCampaignScreen() {
       <div class="campaign-name">${campaign.name}</div>
       <div class="level-diff ${campaign.difficultyClass}">${campaign.difficultyLabel}</div>
       <div class="campaign-desc">${campaign.description}</div>
-      <div class="campaign-progress">${unlocked ? `${doneCount}/${totalLevels} 已通关` : "🔒 未解锁"}</div>
+      <div class="campaign-progress">${unlocked ? `通关进度：${doneCount}/${totalLevels}` : "🔒 未解锁"}</div>
     `;
     if (unlocked) {
       card.addEventListener("click", () => showLevelScreen(campaign));
@@ -167,6 +183,10 @@ document.getElementById("campaign-back-btn").addEventListener("click", () => {
 // ─── 初始化游戏 ───────────────────────────────────────────────────────────────
 async function initGame(level) {
   // 清理旧实例
+  if (effectSystem) {
+    effectSystem.clearAll();
+    effectSystem = null;
+  }
   if (app) {
     app.destroy(true, { children: true, texture: false });
     app = null;
@@ -205,10 +225,38 @@ async function initGame(level) {
   });
   root.appendChild(app.canvas);
 
-  await PIXI.Assets.load([assetUrls.tower, assetUrls.enemy]);
+  await PIXI.Assets.load([
+    assetUrls.tower,
+    assetUrls.enemy,
+    assetUrls.enemySoldier,
+    assetUrls.enemyFast,
+    assetUrls.enemyTank,
+    assetUrls.enemySoldierWalk,
+    assetUrls.enemyFastWalk,
+    assetUrls.enemyTankWalk,
+  ]);
+
+  // 切割 walk sprite sheet 帧（4帧横排，每帧宽度 = 总宽/4）
+  function sliceWalkFrames(url) {
+    const baseTexture = PIXI.Texture.from(url);
+    const w = baseTexture.width;
+    const h = baseTexture.height;
+    const frameW = Math.round(w / 4);
+    return [0, 1, 2, 3].map(i =>
+      new PIXI.Texture({ source: baseTexture.source, frame: new PIXI.Rectangle(i * frameW, 0, frameW, h) })
+    );
+  }
+
   textures = {
     tower: PIXI.Texture.from(assetUrls.tower),
     enemy: PIXI.Texture.from(assetUrls.enemy),
+    enemySoldier: PIXI.Texture.from(assetUrls.enemySoldier),
+    enemyFast: PIXI.Texture.from(assetUrls.enemyFast),
+    enemyTank: PIXI.Texture.from(assetUrls.enemyTank),
+    // walk animation frames
+    enemySoldierFrames: sliceWalkFrames(assetUrls.enemySoldierWalk),
+    enemyFastFrames: sliceWalkFrames(assetUrls.enemyFastWalk),
+    enemyTankFrames: sliceWalkFrames(assetUrls.enemyTankWalk),
   };
 
   boardContainer = new PIXI.Container();
@@ -307,18 +355,33 @@ async function initGame(level) {
   enemiesLayer = new PIXI.Container();
   bulletsLayer = new PIXI.Container();
   ghostsLayer = new PIXI.Container();
-  boardContainer.addChild(towersLayer, enemiesLayer, bulletsLayer, ghostsLayer);
+  effectsLayer = new PIXI.Container();
+  boardContainer.addChild(towersLayer, enemiesLayer, bulletsLayer, ghostsLayer, effectsLayer);
+  
+  // 初始化特效系统
+  effectSystem = new EffectSystem({ effectsLayer });
+  
+  // 初始化时间系统
+  timeSystem = new TimeSystem();
 
   placementHighlight = new PIXI.Graphics();
   placementHighlight.visible = false;
   boardContainer.addChild(placementHighlight);
+
+  // 塔射程显示（悬停时）
+  towerRangeHighlight = new PIXI.Graphics();
+  towerRangeHighlight.visible = false;
+  boardContainer.addChild(towerRangeHighlight);
 
   layoutBoard();
   window.addEventListener("resize", layoutBoard);
 
   boardContainer.on("pointerdown", handleBoardPointerDown);
   boardContainer.on("pointermove", handleBoardPointerMove);
-  boardContainer.on("pointerout", () => { placementHighlight.visible = false; });
+  boardContainer.on("pointerout", () => {
+    placementHighlight.visible = false;
+    towerRangeHighlight.visible = false;
+  });
 
   // 塔选择按钮
   document.querySelectorAll(".tower-btn").forEach((btn) => {
@@ -328,6 +391,22 @@ async function initGame(level) {
       setTowerType(state.selectedTowerType === type ? null : type);
     };
   });
+
+  // 塔升级按钮
+  const upgradeBtn = document.getElementById("tower-upgrade-btn");
+  if (upgradeBtn) {
+    upgradeBtn.onclick = () => {
+      upgradeSelectedTower();
+    };
+  }
+
+  // 塔出售按钮
+  const sellBtn = document.getElementById("tower-sell-btn");
+  if (sellBtn) {
+    sellBtn.onclick = () => {
+      sellSelectedTower();
+    };
+  }
 
   // 收起面板
   toggleUiButton.onclick = () => {
@@ -343,7 +422,8 @@ async function initGame(level) {
     if (state.gameOver || state.victory) return;
     if (state.waveInProgress) { setStatus("此波尚未结束", elements); return; }
     if (state.wave >= currentLevel.waveCount) { setStatus("所有波次已完成！", elements); return; }
-    startWave();
+    if (countdownActive) return; // 倒计时期间不能再次点击
+    startWaveWithCountdown();
   };
 
   // 万鬼大阵
@@ -363,9 +443,17 @@ async function initGame(level) {
   // 重试按钮
   document.getElementById("retry-btn").onclick = () => {
     gameOverScreen.classList.add("hidden");
-    // 清理画布
+    // 清理画布和特效系统
+    if (effectSystem) {
+      effectSystem.clearAll();
+      effectSystem = null;
+    }
     if (app) { app.destroy(true, { children: true, texture: false }); app = null; }
     root.querySelectorAll("canvas").forEach(c => c.remove());
+    // 重置时间系统
+    if (timeSystem) {
+      timeSystem.reset();
+    }
     initGame(currentLevel);
   };
 
@@ -388,11 +476,30 @@ async function initGame(level) {
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setTowerType(null);
+    if (e.key === " " || e.code === "Space") {
+      e.preventDefault(); // 防止页面滚动
+      togglePause();
+    }
   });
 
   updateUI(state, elements);
   updateButtons(state, elements);
+  updateGameStatus(timeSystem, elements);
+  updateTowerSelectionPanel(state, elements);
   setStatus("万劫魔宫，严阵以待", elements);
+
+  // 速度切换按钮
+  document.getElementById("speed-btn").onclick = () => {
+    if (state.gameOver || state.victory) return;
+    timeSystem.cycleSpeed();
+    updateGameStatus(timeSystem, elements);
+  };
+
+  // 暂停按钮
+  document.getElementById("pause-btn").onclick = () => {
+    if (state.gameOver || state.victory) return;
+    togglePause();
+  };
 
   app.ticker.add(() => updateGame(app.ticker.deltaMS / 1000));
 }
@@ -421,19 +528,38 @@ function layoutBoard() {
 // ─── 游戏主循环 ───────────────────────────────────────────────────────────────
 function updateGame(deltaSec) {
   if (state.gameOver || state.victory) return;
+  
+  // 更新倒计时（优先处理）
+  if (countdownActive) {
+    updateCountdown(deltaSec);
+    return; // 倒计时期间暂停其他游戏逻辑
+  }
+  
+  // 获取有效的帧时间（考虑暂停和速度）
+  const effectiveDelta = timeSystem.getEffectiveDelta(deltaSec);
+  
+  // 暂停时不更新游戏逻辑
+  if (effectiveDelta === 0) {
+    return;
+  }
 
-  // 万鬼冷却
+  // 万鬼冷却（使用真实时间，不受速度影响）
   if (state.wanguiCooldownRemaining > 0) {
     state.wanguiCooldownRemaining = Math.max(0, state.wanguiCooldownRemaining - deltaSec);
     updateWanguiBtn(state, elements);
   }
 
   const deps = makeDeps();
-  updateSpawning(state, deltaSec, deps);
-  updateTowers(state, deltaSec, deps);
-  updateBullets(state, deltaSec, deps);
-  updateEnemies(state, deltaSec, deps);
-  updateGhosts(state, deltaSec, deps);
+  updateSpawning(state, effectiveDelta, deps);
+  updateTowers(state, effectiveDelta, deps);
+  updateBullets(state, effectiveDelta, deps);
+  updateEnemies(state, effectiveDelta, deps);
+  updateGhosts(state, effectiveDelta, deps);
+  
+  // 更新特效系统
+  if (effectSystem) {
+    effectSystem.update(effectiveDelta);
+  }
 
   // 波次结束检测
   if (state.waveInProgress && state.spawnQueue.length === 0 && state.enemies.length === 0) {
@@ -448,7 +574,16 @@ function updateGame(deltaSec) {
 }
 
 function makeDeps() {
-  return { textures, pathWaypoints, enemiesLayer, bulletsLayer, ghostsLayer, elements, onGameOver: triggerGameOver };
+  return { 
+    textures, 
+    pathWaypoints, 
+    enemiesLayer, 
+    bulletsLayer, 
+    ghostsLayer, 
+    elements, 
+    onGameOver: triggerGameOver,
+    effectSystem,
+  };
 }
 
 // ─── 波次管理 ─────────────────────────────────────────────────────────────────
@@ -461,6 +596,33 @@ function startWave() {
   setStatus(`第 ${state.wave} 波正道来袭！`, elements);
   updateUI(state, elements);
   updateButtons(state, elements);
+}
+
+// ─── 波次倒计时 ───────────────────────────────────────────────────────────────
+function startWaveWithCountdown() {
+  countdownActive = true;
+  countdownRemaining = 3; // 3 秒倒计时
+  elements.countdownOverlay.classList.remove("hidden");
+  elements.countdownText.textContent = countdownRemaining;
+  elements.startWaveButton.disabled = true;
+  setStatus("波次即将开始，请做好准备！", elements);
+}
+
+function updateCountdown(deltaSec) {
+  if (!countdownActive) return;
+  
+  countdownRemaining -= deltaSec;
+  if (countdownRemaining <= 0) {
+    // 倒计时结束
+    countdownActive = false;
+    countdownRemaining = 0;
+    elements.countdownOverlay.classList.add("hidden");
+    elements.startWaveButton.disabled = false;
+    startWave(); // 开始生成敌人
+  } else {
+    // 更新显示数字
+    elements.countdownText.textContent = Math.ceil(countdownRemaining);
+  }
 }
 
 // ─── 鬼兵 ─────────────────────────────────────────────────────────────────────
@@ -480,6 +642,11 @@ function triggerGameOver() {
   state.gameOver = true;
   state.waveInProgress = false;
   setTowerType(null);
+  deselectTower();
+  if (timeSystem) {
+    timeSystem.setGameOver(true);
+    updateGameStatus(timeSystem, elements);
+  }
   document.getElementById("final-wave").textContent = state.wave;
   gameOverScreen.classList.remove("hidden");
 }
@@ -488,6 +655,11 @@ function triggerVictory() {
   state.victory = true;
   state.waveInProgress = false;
   markCompleted(currentLevel.id);
+  deselectTower();
+  if (timeSystem) {
+    timeSystem.setGameOver(true);
+    updateGameStatus(timeSystem, elements);
+  }
   document.getElementById("victory-wave").textContent = state.wave;
 
   // 最终关特殊文案
@@ -510,8 +682,17 @@ function triggerVictory() {
 }
 
 function returnToMenu() {
+  // 清理特效系统
+  if (effectSystem) {
+    effectSystem.clearAll();
+    effectSystem = null;
+  }
   if (app) { app.destroy(true, { children: true, texture: false }); app = null; }
   root.querySelectorAll("canvas").forEach(c => c.remove());
+  // 重置时间系统
+  if (timeSystem) {
+    timeSystem.reset();
+  }
   gameOverScreen.classList.add("hidden");
   victoryScreen.classList.add("hidden");
   root.classList.add("hidden");
@@ -530,12 +711,28 @@ function findNextLevel(currentId) {
 
 // ─── 筑塔 ─────────────────────────────────────────────────────────────────────
 function handleBoardPointerDown(event) {
-  if (!state.selectedTowerType || state.gameOver || state.victory) return;
   const cell = getCellFromEvent(event);
-  if (!cell) return;
+  
+  // 如果点击空白区域（无 cell），取消选择
+  if (!cell) {
+    if (state.selectedTower) {
+      deselectTower();
+    }
+    return;
+  }
+  
   const cellKey = `${cell.x},${cell.y}`;
+  
+  // 检查是否点击了已建造的塔（用于选择）
+  const clickedTower = state.towers.find(t => t.cellKey === cellKey);
+  if (clickedTower) {
+    selectTower(clickedTower);
+    return;
+  }
+  
+  // 如果正在选择塔类型，尝试建造
+  if (!state.selectedTowerType || state.gameOver || state.victory) return;
   if (pathKeySet.has(cellKey)) { setStatus("此处乃通路，不可筑塔", elements); return; }
-  if (state.towers.some(t => t.cellKey === cellKey)) { setStatus("此格已有防御，无需再筑", elements); return; }
   if (towerSpotSet.size > 0 && !towerSpotSet.has(cellKey)) { setStatus("此处地势不利，无法筑塔", elements); return; }
   const config = towerTypes[state.selectedTowerType];
   if (!config) return;
@@ -550,11 +747,33 @@ function handleBoardPointerDown(event) {
 }
 
 function handleBoardPointerMove(event) {
+  const cell = getCellFromEvent(event);
+  
+  // 塔射程显示：检测是否悬停在已有塔上
+  towerRangeHighlight.clear();
+  towerRangeHighlight.visible = false;
+  
+  if (cell && !state.gameOver && !state.victory) {
+    const cellKey = `${cell.x},${cell.y}`;
+    const hoveredTower = state.towers.find(t => t.cellKey === cellKey);
+    if (hoveredTower) {
+      // 显示半透明绿色射程圈
+      const range = hoveredTower.range;
+      const cx = cell.x * tileSize + tileSize / 2;
+      const cy = cell.y * tileSize + tileSize / 2;
+      towerRangeHighlight.lineStyle(2, 0x45f57a, 0.3);
+      towerRangeHighlight.beginFill(0x45f57a, 0.15);
+      towerRangeHighlight.drawCircle(cx, cy, range);
+      towerRangeHighlight.endFill();
+      towerRangeHighlight.visible = true;
+    }
+  }
+  
+  // 建塔放置预览
   if (!state.selectedTowerType || state.gameOver || state.victory) {
     placementHighlight.visible = false;
     return;
   }
-  const cell = getCellFromEvent(event);
   if (!cell) { placementHighlight.visible = false; return; }
   const config = towerTypes[state.selectedTowerType];
   const valid = config ? canPlaceTower(cell, config) : false;
@@ -592,5 +811,90 @@ function setTowerType(type) {
     setStatus(`选择 ${cfg ? cfg.name : type}，点击空格落塔`, elements);
   } else {
     setStatus("取消筑塔", elements);
+  }
+}
+
+/**
+ * 选择已建造的塔
+ * @param {Tower} tower
+ */
+function selectTower(tower) {
+  state.selectedTower = tower;
+  state.selectedTowerType = null; // 取消建造模式
+  if (placementHighlight) placementHighlight.visible = false;
+  updateButtons(state, elements);
+  updateTowerSelectionPanel(state, elements);
+  setStatus(`选中 ${tower.type} 塔 (Lv.${tower.level})`, elements);
+}
+
+/**
+ * 取消选择塔
+ */
+function deselectTower() {
+  state.selectedTower = null;
+  updateTowerSelectionPanel(state, elements);
+  setStatus("取消选择", elements);
+}
+
+/**
+ * 升级选中的塔
+ */
+function upgradeSelectedTower() {
+  const tower = state.selectedTower;
+  if (!tower) return;
+  
+  const upgradeCost = tower.getUpgradeCost();
+  if (tower.level >= tower.maxLevel) {
+    setStatus("已达满级，无法升级", elements);
+    return;
+  }
+  if (state.gold < upgradeCost) {
+    setStatus("灵石不足，无法升级", elements);
+    return;
+  }
+  
+  state.gold -= upgradeCost;
+  tower.upgrade();
+  updateUI(state, elements);
+  updateButtons(state, elements);
+  updateTowerSelectionPanel(state, elements);
+  setStatus(`${tower.type} 塔升级至 Lv.${tower.level}！`, elements);
+}
+
+/**
+ * 出售选中的塔
+ */
+function sellSelectedTower() {
+  const tower = state.selectedTower;
+  if (!tower) return;
+  
+  const refund = tower.getSellRefund();
+  state.gold += refund;
+  
+  // 从图层和数组中移除
+  if (tower.sprite && tower.sprite.parent) {
+    tower.sprite.parent.removeChild(tower.sprite);
+  }
+  const idx = state.towers.indexOf(tower);
+  if (idx >= 0) state.towers.splice(idx, 1);
+  
+  updateUI(state, elements);
+  updateButtons(state, elements);
+  deselectTower();
+  setStatus(`塔已出售，返还 ${refund} 灵石`, elements);
+}
+
+/**
+ * 切换暂停状态
+ */
+function togglePause() {
+  if (state.gameOver || state.victory) return;
+  timeSystem.togglePause();
+  updateGameStatus(timeSystem, elements);
+  
+  if (timeSystem.isPaused) {
+    setStatus("游戏已暂停 - 按空格键继续", elements);
+  } else {
+    setStatus("游戏继续", elements);
   }
 }

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <!-- 龙气禁卫铠甲渐变色（金色） -->
+    <linearGradient id="tankArmor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="50%" stop-color="#e8b400"/>
+      <stop offset="100%" stop-color="#c89000"/>
+    </linearGradient>
+    <!-- 暗金底色 -->
+    <linearGradient id="tankArmorDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a6a10"/>
+      <stop offset="100%" stop-color="#6a4a00"/>
+    </linearGradient>
+    <!-- 龙气效果 -->
+    <radialGradient id="dragonAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffdd44" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff8800" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- 龙气光环 -->
+  <circle cx="24" cy="24" r="22" fill="url(#dragonAura)"/>
+  <circle cx="24" cy="24" r="20" fill="none" stroke="#ffdd44" stroke-opacity="0.3" stroke-width="3"/>
+  
+  <!-- 肩甲（龙首装饰） -->
+  <circle cx="10" cy="20" r="5" fill="url(#tankArmor)" stroke="#ffd700" stroke-width="1"/>
+  <circle cx="10" cy="20" r="2" fill="#ff8800"/>
+  <circle cx="38" cy="20" r="5" fill="url(#tankArmor)" stroke="#ffd700" stroke-width="1"/>
+  <circle cx="38" cy="20" r="2" fill="#ff8800"/>
+  
+  <!-- 身体/重甲 -->
+  <rect x="14" y="18" width="20" height="22" rx="3" fill="url(#tankArmorDark)" stroke="#e8b400" stroke-width="2"/>
+  <!-- 胸甲龙纹 -->
+  <path d="M24 22 L26 28 L24 34 L22 28 Z" fill="url(#tankArmor)" opacity="0.8"/>
+  <!-- 腰带 -->
+  <rect x="14" y="32" width="20" height="4" fill="#8a5a00" stroke="#c89000" stroke-width="1"/>
+  
+  <!-- 头部/战盔 -->
+  <ellipse cx="24" cy="14" rx="9" ry="8" fill="url(#tankArmorDark)" stroke="#e8b400" stroke-width="2"/>
+  <!-- 头盔顶饰（龙角） -->
+  <path d="M18 8 L16 2 L20 6" fill="none" stroke="#ffd700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30 8 L32 2 L28 6" fill="none" stroke="#ffd700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 头盔面罩 -->
+  <rect x="19" y="12" width="10" height="6" rx="1" fill="#4a3a00" stroke="#8a6a10" stroke-width="1"/>
+  <!-- 眼睛（从面罩中透出红光） -->
+  <circle cx="21" cy="15" r="1.5" fill="#ff4400" opacity="0.9"/>
+  <circle cx="27" cy="15" r="1.5" fill="#ff4400" opacity="0.9"/>
+  
+  <!-- 手中的重剑/盾 -->
+  <rect x="36" y="22" width="8" height="18" rx="2" fill="url(#tankArmorDark)" stroke="#e8b400" stroke-width="2"/>
+  <!-- 盾面龙纹 -->
+  <circle cx="40" cy="31" r="4" fill="none" stroke="#ffd700" stroke-width="1.5"/>
+  <circle cx="40" cy="31" r="2" fill="#ff8800"/>
+  
+  <!-- 腿部铠甲 -->
+  <rect x="15" y="40" width="7" height="6" fill="url(#tankArmorDark)" stroke="#c89000" stroke-width="1"/>
+  <rect x="26" y="40" width="7" height="6" fill="url(#tankArmorDark)" stroke="#c89000" stroke-width="1"/>
+</svg>

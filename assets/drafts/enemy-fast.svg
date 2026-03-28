@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+  <defs>
+    <!-- 御风剑修衣袍渐变色（青绿色） -->
+    <linearGradient id="fastRobe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#68e0c8"/>
+      <stop offset="100%" stop-color="#40a890"/>
+    </linearGradient>
+    <!-- 皮肤色 -->
+    <linearGradient id="fastSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8e0c8"/>
+      <stop offset="100%" stop-color="#e5c8b0"/>
+    </linearGradient>
+    <!-- 风纹渐变色 -->
+    <linearGradient id="windEffect" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#88ffdd" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#88ffdd" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#88ffdd" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 外圈风之光环 -->
+  <circle cx="14" cy="14" r="12" fill="none" stroke="#88ffdd" stroke-opacity="0.2" stroke-width="1.5"/>
+  
+  <!-- 飘动的衣带（动态感） -->
+  <path d="M8 24 Q4 20 6 16" fill="none" stroke="#68e0c8" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  <path d="M20 24 Q24 20 22 16" fill="none" stroke="#68e0c8" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  
+  <!-- 身体/衣袍（前倾姿势） -->
+  <path d="M10 24 L18 24 L17 12 L11 12 Z" fill="url(#fastRobe)" stroke="#78f0d8" stroke-width="1"/>
+  
+  <!-- 头部 -->
+  <circle cx="14" cy="9" r="5" fill="url(#fastSkin)" stroke="#d5c0a8" stroke-width="1"/>
+  
+  <!-- 飘逸的长发 -->
+  <path d="M10 8 Q6 10 8 14" fill="none" stroke="#4a8878" stroke-width="2" stroke-linecap="round"/>
+  <path d="M18 8 Q22 10 20 14" fill="none" stroke="#4a8878" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- 手中的剑（水平前指，速度感） -->
+  <line x1="18" y1="14" x2="26" y2="14" stroke="#a8ffe8" stroke-width="2" stroke-linecap="round"/>
+  <line x1="26" y1="14" x2="28" y2="14" stroke="#68e0c8" stroke-width="1" stroke-linecap="round"/>
+  <!-- 剑格 -->
+  <line x1="19" y1="12" x2="19" y2="16" stroke="#88ffdd" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- 脚下的风纹 -->
+  <path d="M6 26 Q14 24 22 26" fill="none" stroke="url(#windEffect)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 28 Q14 26 20 28" fill="none" stroke="url(#windEffect)" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- 眼睛（专注） -->
+  <circle cx="13" cy="8" r="1" fill="#2a4a40"/>
+  <circle cx="15" cy="8" r="1" fill="#2a4a40"/>
+</svg>
