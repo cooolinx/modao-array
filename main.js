@@ -1,10 +1,6 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
 import {
-  tileSize,
-  gridWidth,
-  gridHeight,
-  boardWidth,
-  boardHeight,
+  getGridConfig,
   assetUrls,
   chapterBackgrounds,
   towerTypes,
@@ -47,6 +43,7 @@ const elements = { goldEl, livesEl, waveEl, statusEl, startWaveButton, countdown
 // ─── 游戏状态 ────────────────────────────────────────────────────────────────
 let state = createInitialState();
 let currentLevel = null;   // 当前小关卡数据
+let gridConfig = null;     // 当前关卡的网格配置 {tileSize, gridWidth, gridHeight, boardWidth, boardHeight}
 let pathCells = [];
 let pathKeySet = new Set();
 let pathWaypoints = [];
@@ -198,8 +195,12 @@ async function initGame(level) {
   state.lives = level.initialLives;
   state.totalWaves = level.waveCount;
 
+  // 计算网格配置（支持关卡自定义）
+  gridConfig = getGridConfig(level);
+  const { tileSize, gridWidth, gridHeight, boardWidth, boardHeight } = gridConfig;
+
   // 构建路径
-  const built = buildPathCells(level.pathNodes);
+  const built = buildPathCells(level.pathNodes, tileSize);
   pathCells = built.cells;
   pathKeySet = built.pathKeySet;
   pathWaypoints = built.pathWaypoints;
@@ -227,10 +228,7 @@ async function initGame(level) {
 
   await PIXI.Assets.load([
     assetUrls.tower,
-    assetUrls.enemy,
-    assetUrls.enemySoldier,
-    assetUrls.enemyFast,
-    assetUrls.enemyTank,
+    assetUrls.enemy, // fallback
     assetUrls.enemySoldierWalk,
     assetUrls.enemyFastWalk,
     assetUrls.enemyTankWalk,
@@ -506,7 +504,9 @@ async function initGame(level) {
 
 // ─── 布局 ─────────────────────────────────────────────────────────────────────
 function layoutBoard() {
-  if (!app) return;
+  if (!app || !gridConfig) return;
+  const { boardWidth, boardHeight } = gridConfig;
+  
   app.renderer.resize(window.innerWidth, window.innerHeight);
 
   const HUD_H = 80;
@@ -737,7 +737,8 @@ function handleBoardPointerDown(event) {
   const config = towerTypes[state.selectedTowerType];
   if (!config) return;
   if (state.gold < config.cost) { setStatus("灵石不足", elements); return; }
-  const tower = new Tower({ cell, texture: textures.tower, config });
+  const ts = gridConfig?.tileSize ?? 64;
+  const tower = new Tower({ cell, texture: textures.tower, config, tileSize: ts });
   towersLayer.addChild(tower.sprite);
   state.towers.push(tower);
   state.gold -= config.cost;
@@ -759,8 +760,9 @@ function handleBoardPointerMove(event) {
     if (hoveredTower) {
       // 显示半透明绿色射程圈
       const range = hoveredTower.range;
-      const cx = cell.x * tileSize + tileSize / 2;
-      const cy = cell.y * tileSize + tileSize / 2;
+      const ts = gridConfig?.tileSize ?? 64;
+      const cx = cell.x * ts + ts / 2;
+      const cy = cell.y * ts + ts / 2;
       towerRangeHighlight.lineStyle(2, 0x45f57a, 0.3);
       towerRangeHighlight.beginFill(0x45f57a, 0.15);
       towerRangeHighlight.drawCircle(cx, cy, range);
@@ -778,8 +780,9 @@ function handleBoardPointerMove(event) {
   const config = towerTypes[state.selectedTowerType];
   const valid = config ? canPlaceTower(cell, config) : false;
   placementHighlight.clear();
+  const ts = gridConfig?.tileSize ?? 64;
   placementHighlight.beginFill(valid ? 0x45f57a : 0xf56262, 0.4);
-  placementHighlight.drawRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+  placementHighlight.drawRect(cell.x * ts, cell.y * ts, ts, ts);
   placementHighlight.endFill();
   placementHighlight.visible = true;
 }
@@ -795,6 +798,8 @@ function canPlaceTower(cell, config) {
 }
 
 function getCellFromEvent(event) {
+  if (!gridConfig) return null;
+  const { tileSize, gridWidth, gridHeight } = gridConfig;
   const local = event.data ? event.data.getLocalPosition(boardContainer) : event.getLocalPosition(boardContainer);
   const cellX = Math.floor(local.x / tileSize);
   const cellY = Math.floor(local.y / tileSize);
@@ -898,3 +903,6 @@ function togglePause() {
     setStatus("游戏继续", elements);
   }
 }
+
+// 暴露给 HTML onclick 使用
+window.deselectTower = deselectTower;

@@ -1,5 +1,5 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@latest/dist/pixi.min.mjs";
-import { tileSize, towerTypes, towerUpgradeConfig } from "../config.js";
+import { towerTypes, towerUpgradeConfig, towerSellConfig } from "../config.js";
 
 export class Tower {
   /**
@@ -7,8 +7,9 @@ export class Tower {
    * @param {Object} options.cell - 格子坐标 {x, y}
    * @param {PIXI.Texture} options.texture - 塔贴图（basic 类型使用）
    * @param {Object} [options.config] - 塔配置，默认 basic
+   * @param {number} [options.tileSize] - 格子尺寸（像素），默认 64
    */
-  constructor({ cell, texture, config = towerTypes.basic }) {
+  constructor({ cell, texture, config = towerTypes.basic, tileSize = 64 }) {
     this.type = config.type || "basic";
     this.baseRange = config.range;
     this.baseFireRate = config.fireRate;

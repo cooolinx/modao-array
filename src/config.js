@@ -1,19 +1,31 @@
-// 游戏常量配置
+// 游戏常量配置（默认值，可被关卡配置覆盖）
 
-export const tileSize = 64;
-export const gridWidth = 32;   // 改为 32（原 24），使宽高比 32:18=1.78 ≈ 背景图 1.79
-export const gridHeight = 18;
+export const defaultTileSize = 64;
+export const defaultGridWidth = 32;
+export const defaultGridHeight = 18;
 
-export const boardWidth = tileSize * gridWidth;   // 2048
-export const boardHeight = tileSize * gridHeight; // 1152
+// 辅助函数：获取关卡的网格配置（支持关卡自定义或回退到默认值）
+export function getGridConfig(level) {
+  const tileSize = level?.tileSize ?? defaultTileSize;
+  const gridWidth = level?.gridWidth ?? defaultGridWidth;
+  const gridHeight = level?.gridHeight ?? defaultGridHeight;
+  return {
+    tileSize,
+    gridWidth,
+    gridHeight,
+    boardWidth: tileSize * gridWidth,
+    boardHeight: tileSize * gridHeight,
+  };
+}
 
 export const assetUrls = {
   tower: "assets/tower.svg",
   enemy: "assets/enemy.svg", // fallback
-  enemySoldier: "assets/enemy-soldier.svg",
-  enemyFast: "assets/enemy-fast.svg",
-  enemyTank: "assets/enemy-tank.svg",
-  // 行走动画 sprite sheet（4帧横排）
+  // 敌人类型贴图：暂时用同一张 fallback（walk animation 仍用各自的 png）
+  enemySoldier: "assets/enemy.svg",
+  enemyFast: "assets/enemy.svg",
+  enemyTank: "assets/enemy.svg",
+  // 行走动画 sprite sheet（4 帧横排）
   enemySoldierWalk: "assets/enemy-soldier-walk.png",
   enemyFastWalk: "assets/enemy-fast-walk.png",
   enemyTankWalk: "assets/enemy-tank-walk.png",
@@ -53,7 +65,7 @@ export const towerTypes = {
     range: 120,
     fireRate: 0.4,
     damage: 45,
-    splashRadius: 60, // 爆炸范围（cannon独有）
+    splashRadius: 60, // 爆炸范围（cannon 独有）
     spriteWidth: 56,
     spriteHeight: 56,
     color: 0xff6b35,
@@ -66,8 +78,8 @@ export const towerTypes = {
     range: 130,
     fireRate: 0.8,
     damage: 6,
-    slowFactor: 0.5, // 减速倍率（slow独有）
-    slowDuration: 2.0, // 减速持续秒数（slow独有）
+    slowFactor: 0.5, // 减速倍率（slow 独有）
+    slowDuration: 2.0, // 减速持续秒数（slow 独有）
     spriteWidth: 48,
     spriteHeight: 48,
     color: 0x88ccff,
@@ -119,11 +131,11 @@ export const enemyTypes = {
 
 // 波次敌人组成配置（超出配置的波次按最后一条规则 + 随机混合处理）
 export const waveConfigs = [
-  { enemies: [{ type: "soldier", count: 8 }] }, // 波次1
-  { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 3 }] }, // 波次2
-  { enemies: [{ type: "soldier", count: 6 }, { type: "tank", count: 1 }] }, // 波次3
-  { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 5 }, { type: "tank", count: 1 }] }, // 波次4
-  { enemies: [{ type: "fast", count: 8 }, { type: "tank", count: 2 }] }, // 波次5
+  { enemies: [{ type: "soldier", count: 8 }] }, // 波次 1
+  { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 3 }] }, // 波次 2
+  { enemies: [{ type: "soldier", count: 6 }, { type: "tank", count: 1 }] }, // 波次 3
+  { enemies: [{ type: "soldier", count: 8 }, { type: "fast", count: 5 }, { type: "tank", count: 1 }] }, // 波次 4
+  { enemies: [{ type: "fast", count: 8 }, { type: "tank", count: 2 }] }, // 波次 5
 ];
 
 export const bulletSpeed = 280;

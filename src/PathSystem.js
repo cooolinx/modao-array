@@ -1,11 +1,10 @@
-import { tileSize } from "./config.js";
-
 /**
  * 根据路径节点构建所有路径格子、pathKeySet、pathWaypoints
  * @param {Array} nodes - 路径节点数组 [{x, y}, ...]（格子坐标）
+ * @param {number} tileSize - 格子尺寸（像素）
  * @returns {{ cells, pathKeySet, pathWaypoints }}
  */
-export function buildPathCells(nodes) {
+export function buildPathCells(nodes, tileSize) {
   const cells = [];
   for (let i = 0; i < nodes.length - 1; i++) {
     const start = nodes[i];

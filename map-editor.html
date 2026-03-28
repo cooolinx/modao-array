@@ -1,600 +1,755 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="utf-8">
-  <title>🗺️ 地图编辑器 · 魔道塔防</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #0d0f14;
-      color: #f0f0f0;
-      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图编辑器 - 魔道塔防</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* ── 顶部工具栏 ── */
-    #toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      background: #161a22;
-      border-bottom: 1px solid #252b38;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-    #toolbar-title { font-size: 15px; font-weight: 700; color: #6fe3ff; white-space: nowrap; }
+  body {
+    background: #0d0d1a;
+    color: #e0d8ff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+  }
 
-    select {
-      background: #1e2330;
-      color: #f0f0f0;
-      border: 1px solid #3a4050;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 13px;
-      cursor: pointer;
-    }
+  .header {
+    background: #1a1a2e;
+    border-bottom: 1px solid #2a2a4a;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+  }
 
-    .sep { width: 1px; height: 24px; background: #2a2f3b; }
+  .header h1 {
+    font-size: 18px;
+    color: #a78bfa;
+    letter-spacing: 0.05em;
+  }
 
-    .brush-btn {
-      padding: 5px 12px;
-      border: 2px solid transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.12s;
-      background: none;
-      color: #ccc;
-    }
-    .brush-btn[data-brush="1"] { border-color: rgba(255,80,80,0.4); color: #ff8888; }
-    .brush-btn[data-brush="2"] { border-color: rgba(80,220,120,0.4); color: #5edc7a; }
-    .brush-btn[data-brush="0"] { border-color: rgba(200,160,80,0.4); color: #ffc060; }
-    .brush-btn.active { filter: brightness(1.5); box-shadow: 0 0 10px currentColor; }
-    .brush-btn[data-brush="1"].active { background: rgba(255,60,60,0.15); }
-    .brush-btn[data-brush="2"].active { background: rgba(60,220,100,0.15); }
-    .brush-btn[data-brush="0"].active { background: rgba(200,160,80,0.15); }
+  .badge {
+    background: #7c3aed;
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.1em;
+  }
 
-    .action-btn {
-      padding: 5px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      background: #2c3a55;
-      color: #d0e0ff;
-      transition: background 0.12s;
-    }
-    .action-btn:hover { background: #3a4f70; }
-    .action-btn.success { background: #1a5c36; color: #5edc7a; }
-    .action-btn.success:hover { background: #236b41; }
-    .action-btn.danger { background: #5c1a1a; color: #ff6060; }
-    .action-btn.danger:hover { background: #6b2323; }
+  .back-btn {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: #a78bfa; }
 
-    #coord-display {
-      margin-left: auto;
-      font-size: 12px;
-      color: #6a7a9a;
-      font-family: monospace;
-      white-space: nowrap;
-    }
+  .toolbar {
+    background: #141428;
+    border-bottom: 1px solid #1e1e3a;
+    padding: 10px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
 
-    /* ── 主编辑区 ── */
-    #editor-area {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
+  .tool-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding-right: 12px;
+    border-right: 1px solid #2a2a4a;
+  }
+  .tool-group:last-child { border-right: none; }
 
-    #canvas-wrap {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      overflow: hidden;
-      background: #0a0c10;
-    }
+  .tool-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-right: 4px;
+  }
 
-    #map-canvas {
-      cursor: crosshair;
-      max-width: 100%;
-      max-height: 100%;
-      display: block;
-      border: 1px solid #252b38;
-    }
+  .tool-btn {
+    background: #1e1e3a;
+    border: 1px solid #2a2a4a;
+    color: #9ca3af;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tool-btn:hover { background: #2d2a5e; color: #a78bfa; border-color: #7c3aed; }
+  .tool-btn.active { background: #7c3aed; color: white; border-color: #7c3aed; }
 
-    /* ── 右侧输出栏 ── */
-    #output-panel {
-      width: 270px;
-      flex-shrink: 0;
-      background: #161a22;
-      border-left: 1px solid #252b38;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
-      gap: 8px;
-      overflow: hidden;
-    }
+  .tool-input {
+    background: #1e1e3a;
+    border: 1px solid #2a2a4a;
+    color: #e0d8ff;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    width: 60px;
+  }
 
-    #legend {
-      background: #0d0f14;
-      border-radius: 6px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      font-size: 12px;
-      color: #9ca7c6;
-      flex-shrink: 0;
-    }
-    .legend-row { display: flex; align-items: center; gap: 8px; }
-    .legend-dot {
-      width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0;
-    }
+  .tool-select {
+    background: #1e1e3a;
+    border: 1px solid #2a2a4a;
+    color: #e0d8ff;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    min-width: 150px;
+    cursor: pointer;
+  }
 
-    #output-panel h3 {
-      font-size: 12px;
-      color: #6a7a9a;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      flex-shrink: 0;
-    }
+  .canvas-container {
+    display: flex;
+    height: calc(100vh - 120px);
+  }
 
-    #json-output {
-      flex: 1;
-      background: #0a0c10;
-      color: #3ecf8e;
-      border: 1px solid #252b38;
-      border-radius: 6px;
-      padding: 8px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 11px;
-      resize: none;
-      outline: none;
-      min-height: 0;
-    }
+  .canvas-area {
+    flex: 1;
+    overflow: auto;
+    background: #0a0a14;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    #copy-status {
-      font-size: 12px;
-      color: #3ecf8e;
-      height: 16px;
-      text-align: center;
-      flex-shrink: 0;
-    }
+  #map-canvas {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    cursor: crosshair;
+  }
 
-    #path-info {
-      font-size: 11px;
-      color: #6a7a9a;
-      background: #0d0f14;
-      border-radius: 4px;
-      padding: 6px 8px;
-      flex-shrink: 0;
-    }
-  </style>
+  .sidebar {
+    width: 320px;
+    background: #141428;
+    border-left: 1px solid #1e1e3a;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    margin-bottom: 20px;
+  }
+
+  .sidebar-title {
+    font-size: 13px;
+    color: #a78bfa;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2a2a4a;
+  }
+
+  .path-node-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .path-node-item {
+    background: #1e1e3a;
+    border: 1px solid #2a2a4a;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .path-node-item .node-coords {
+    color: #9ca3af;
+  }
+
+  .path-node-item .node-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .node-action-btn {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .node-action-btn:hover { background: #2a2a4a; color: #ef4444; }
+
+  .export-area {
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: #34d399;
+    max-height: 400px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .help-text {
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  .help-text kbd {
+    background: #2a2a4a;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', monospace;
+  }
+
+  .bg-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #9ca3af;
+    cursor: pointer;
+  }
+
+  .bg-toggle input[type="checkbox"] {
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-<div id="toolbar">
-  <span id="toolbar-title">🗺️ 地图编辑器</span>
-  <select id="level-select"><option value="">── 选择关卡 ──</option></select>
-  <div class="sep"></div>
-  <button class="brush-btn active" data-brush="1">🔴 敌人路径</button>
-  <button class="brush-btn" data-brush="2">🟢 放塔位置</button>
-  <button class="brush-btn" data-brush="0">⬜ 橡皮擦</button>
-  <div class="sep"></div>
-  <button class="action-btn danger" id="clear-btn">🗑 清空</button>
-  <button class="action-btn success" id="export-btn">📋 生成 JSON</button>
-  <span id="coord-display">x:- y:-</span>
+<div class="header">
+  <h1>🗺 地图编辑器</h1>
+  <span class="badge">DEV</span>
+  <a class="back-btn" href="dev.html">← 开发者工具</a>
 </div>
 
-<div id="editor-area">
-  <div id="canvas-wrap">
+<div class="toolbar">
+  <div class="tool-group">
+    <span class="tool-label">关卡:</span>
+    <select class="tool-select" id="level-select"></select>
+  </div>
+
+  <div class="tool-group">
+    <span class="tool-label">网格:</span>
+    <input type="number" class="tool-input" id="grid-width" value="32" min="8" max="64">
+    <span class="tool-label">×</span>
+    <input type="number" class="tool-input" id="grid-height" value="18" min="8" max="64">
+    <button class="tool-btn" id="apply-grid">应用</button>
+  </div>
+
+  <div class="tool-group">
+    <span class="tool-label">背景:</span>
+    <select class="tool-select" id="bg-select">
+      <option value="">无背景</option>
+      <option value="assets/bg-chapter-1.png">第 1 章背景</option>
+    </select>
+    <label class="bg-toggle">
+      <input type="checkbox" id="bg-opacity" checked>
+      半透明
+    </label>
+  </div>
+
+  <div class="tool-group">
+    <span class="tool-label">工具:</span>
+    <button class="tool-btn active" data-tool="path">🛤 路径</button>
+    <button class="tool-btn" data-tool="tower">🏰 塔位</button>
+    <button class="tool-btn" data-tool="erase">🧹 擦除</button>
+  </div>
+
+  <div class="tool-group">
+    <button class="tool-btn" id="undo-btn">↩ 撤销</button>
+    <button class="tool-btn" id="clear-btn">🗑 清空</button>
+  </div>
+
+  <div class="tool-group">
+    <button class="tool-btn" id="load-btn">📂 加载</button>
+    <button class="tool-btn" id="export-btn">📋 导出</button>
+    <button class="tool-btn" id="save-btn">💾 保存</button>
+  </div>
+</div>
+
+<div class="canvas-container">
+  <div class="canvas-area">
     <canvas id="map-canvas"></canvas>
   </div>
-  <div id="output-panel">
-    <div id="legend">
-      <div class="legend-row"><div class="legend-dot" style="background:rgba(255,60,60,0.75)"></div>敌人路径（数字=顺序）</div>
-      <div class="legend-row"><div class="legend-dot" style="background:rgba(60,220,100,0.65)"></div>可放塔位置</div>
-      <div class="legend-row"><div class="legend-dot" style="background:rgba(255,255,255,0.08);border:1px solid #333"></div>空格=普通地形</div>
+
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">📍 路径节点</div>
+      <div class="path-node-list" id="path-node-list"></div>
     </div>
-    <div id="path-info">路径格子：<span id="path-count">0</span> 个 &nbsp;|&nbsp; 塔位：<span id="tower-count">0</span> 个</div>
-    <h3>📄 JSON 输出</h3>
-    <textarea id="json-output" readonly placeholder="点击「生成 JSON」后在此显示..."></textarea>
-    <button class="action-btn success" id="copy-btn">📋 复制到剪贴板</button>
-    <div id="copy-status"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">🏰 塔位</div>
+      <div class="help-text" id="tower-count">共 0 个塔位</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">💡 使用说明</div>
+      <div class="help-text">
+        <p><kbd>左键</kbd> 添加路径节点/塔位</p>
+        <p><kbd>右键</kbd> 删除节点/塔位</p>
+        <p><kbd>Ctrl+Z</kbd> 撤销</p>
+        <p>路径会自动连接相邻节点</p>
+        <p style="margin-top: 8px;">选择关卡后点击"加载"可导入现有配置</p>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">📋 导出配置</div>
+      <div class="export-area" id="export-output">点击"导出"按钮生成...</div>
+    </div>
   </div>
 </div>
 
 <script type="module">
+import { defaultTileSize, getGridConfig } from './src/config.js';
 import { campaigns } from './src/levels/campaigns.js';
-import { chapterBackgrounds, gridWidth, gridHeight } from './src/config.js';
 
-// ── 常量 ──────────────────────────────────────────────────────────────────────
-const GRID_W = gridWidth;   // 32
-const GRID_H = gridHeight;  // 18
-const CELL_PX = 40;         // canvas 内每格像素
-const CW = GRID_W * CELL_PX; // 1280
-const CH = GRID_H * CELL_PX; // 720
+// ── 状态 ─────────────────────────────────────────────────────────────────────
+let gridWidth = 32;
+let gridHeight = 18;
+let tileSize = defaultTileSize;
 
-// ── Canvas 初始化 ─────────────────────────────────────────────────────────────
+let pathNodes = [];
+let towerSpots = [];
+let currentTool = 'path';
+let history = [];
+let backgroundImage = null;
+let bgOpacity = 0.5;
+
+// ── Canvas 设置 ──────────────────────────────────────────────────────────────
 const canvas = document.getElementById('map-canvas');
 const ctx = canvas.getContext('2d');
-canvas.width = CW;
-canvas.height = CH;
 
-// ── 状态 ──────────────────────────────────────────────────────────────────────
-let grid = newGrid();           // grid[y][x] = 0|1|2
-let brush = 1;                  // 当前笔刷：1=路径 2=塔位 0=橡皮
-let isDrawing = false;
-let hoverCell = null;
-let bgImage = null;
-let currentLevel = null;
-
-function newGrid() {
-  return Array.from({ length: GRID_H }, () => new Uint8Array(GRID_W));
+function resizeCanvas() {
+  canvas.width = gridWidth * tileSize;
+  canvas.height = gridHeight * tileSize;
+  render();
 }
 
-// ── 关卡选择器填充 ────────────────────────────────────────────────────────────
-const sel = document.getElementById('level-select');
-campaigns.forEach(c => {
-  const grp = document.createElement('optgroup');
-  grp.label = `第${c.id}章 ${c.name}`;
-  c.levels.forEach(lv => {
-    const opt = document.createElement('option');
-    opt.value = `${c.id}:${lv.id}`;
-    opt.textContent = `${lv.id} ${lv.name}`;
-    grp.appendChild(opt);
-  });
-  sel.appendChild(grp);
-});
-
-sel.addEventListener('change', () => {
-  const [cId, lvId] = sel.value.split(':');
-  if (!cId) return;
-  const campaign = campaigns.find(c => c.id === parseInt(cId));
-  const level = campaign?.levels.find(l => l.id === lvId);
-  if (!level) return;
-  currentLevel = level;
-  loadLevel(campaign, level);
-});
-
-// ── 加载关卡 ──────────────────────────────────────────────────────────────────
-function loadLevel(campaign, level) {
-  grid = newGrid();
-
-  // 从 pathNodes 恢复现有路径
-  if (level.pathNodes?.length > 1) {
-    const nodes = level.pathNodes;
-    for (let i = 0; i < nodes.length - 1; i++) {
-      let { x, y } = nodes[i];
-      const ex = nodes[i + 1].x, ey = nodes[i + 1].y;
-      const sx = Math.sign(ex - x), sy = Math.sign(ey - y);
-      if (i === 0) setCell(x, y, 1);
-      while (x !== ex || y !== ey) {
-        x += sx; y += sy;
-        setCell(x, y, 1);
-      }
-    }
-  }
-
-  // 加载背景图
-  bgImage = null;
-  const bgUrl = chapterBackgrounds[campaign.id];
-  if (bgUrl) {
-    const img = new Image();
-    img.onload = () => { bgImage = img; render(); };
-    img.src = bgUrl;
-  } else {
-    render();
-  }
-}
-
-function setCell(x, y, type) {
-  if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) grid[y][x] = type;
-}
-
-// ── 路径追踪（从最左侧路径格出发，顺序追踪） ─────────────────────────────────
-function tracePathCells() {
-  const cells = [];
-  for (let y = 0; y < GRID_H; y++)
-    for (let x = 0; x < GRID_W; x++)
-      if (grid[y][x] === 1) cells.push([x, y]);
-  if (!cells.length) return [];
-
-  const pathSet = new Set(cells.map(([x, y]) => `${x},${y}`));
-
-  // 找起点：x=0 上的路径格，或最小 x 的路径格
-  let start = cells.find(([x]) => x === 0);
-  if (!start) start = cells.reduce((a, b) => a[0] < b[0] ? a : b);
-
-  const visited = new Set();
-  const ordered = [];
-  let cur = start;
-  let prevDir = [1, 0];
-
-  while (cur) {
-    const [x, y] = cur;
-    const key = `${x},${y}`;
-    if (visited.has(key)) break;
-    visited.add(key);
-    ordered.push([x, y]);
-
-    const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-    // 同方向优先
-    dirs.sort((a, b) => {
-      const am = a[0]===prevDir[0] && a[1]===prevDir[1] ? -1 : 0;
-      const bm = b[0]===prevDir[0] && b[1]===prevDir[1] ? -1 : 0;
-      return am - bm;
-    });
-
-    let next = null;
-    for (const [dx, dy] of dirs) {
-      const nk = `${x+dx},${y+dy}`;
-      if (pathSet.has(nk) && !visited.has(nk)) {
-        next = [x+dx, y+dy];
-        prevDir = [dx, dy];
-        break;
-      }
-    }
-    cur = next;
-  }
-  return ordered;
-}
-
-// 路径格 → 简化 waypoints（仅保留转折点）
-function toWaypoints(ordered) {
-  if (!ordered.length) return [];
-  const wps = [ordered[0]];
-  let prevDir = null;
-
-  for (let i = 1; i < ordered.length; i++) {
-    const dir = `${ordered[i][0]-ordered[i-1][0]},${ordered[i][1]-ordered[i-1][1]}`;
-    if (prevDir !== null && dir !== prevDir) {
-      wps.push(ordered[i-1]);
-    }
-    prevDir = dir;
-    if (i === ordered.length - 1) wps.push(ordered[i]);
-  }
-
-  // 去重连续相同
-  return wps.filter((w, i) => i === 0 || w[0] !== wps[i-1][0] || w[1] !== wps[i-1][1]);
-}
-
-// ── 渲染 ──────────────────────────────────────────────────────────────────────
+// ── 渲染 ─────────────────────────────────────────────────────────────────────
 function render() {
-  // 底色
-  ctx.fillStyle = '#1a1f2e';
-  ctx.fillRect(0, 0, CW, CH);
+  // 清空
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 背景图
-  if (bgImage) {
-    ctx.drawImage(bgImage, 0, 0, CW, CH);
-  }
-
-  // 追踪路径（为箭头和序号做准备）
-  const traced = tracePathCells();
-  const traceIndex = new Map(traced.map(([x,y], i) => [`${x},${y}`, i]));
-
-  // 绘制格子叠色
-  for (let y = 0; y < GRID_H; y++) {
-    for (let x = 0; x < GRID_W; x++) {
-      const t = grid[y][x];
-      if (!t) continue;
-      const px = x * CELL_PX, py = y * CELL_H_PX();
-      if (t === 1) {
-        ctx.fillStyle = 'rgba(220,50,50,0.42)';
-      } else {
-        ctx.fillStyle = 'rgba(50,200,80,0.42)';
-      }
-      ctx.fillRect(px, py, CELL_PX, CELL_H_PX());
-    }
-  }
-
-  // 路径箭头（每格中心画方向箭头）
-  for (let i = 0; i < traced.length; i++) {
-    const [x, y] = traced[i];
-    const cx = x * CELL_PX + CELL_PX / 2;
-    const cy = y * CELL_H_PX() + CELL_H_PX() / 2;
-
-    // 序号（较大间隔显示）
-    const idx = i + 1;
-    if (i === 0 || i === traced.length - 1 || idx % 5 === 0) {
-      ctx.fillStyle = 'rgba(255,220,80,0.95)';
-      ctx.font = `bold ${Math.min(CELL_PX, CELL_H_PX()) * 0.45}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(idx, cx, cy);
-    } else if (i < traced.length - 1) {
-      // 小箭头
-      const [nx, ny] = traced[i+1];
-      const dx = nx - x, dy = ny - y;
-      const angle = Math.atan2(dy * CELL_H_PX(), dx * CELL_PX);
-      const s = Math.min(CELL_PX, CELL_H_PX()) * 0.22;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
-      ctx.fillStyle = 'rgba(255,220,80,0.7)';
-      ctx.beginPath();
-      ctx.moveTo(s, 0);
-      ctx.lineTo(-s * 0.6, -s * 0.5);
-      ctx.lineTo(-s * 0.6, s * 0.5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  // 塔位标记（圆圈）
-  for (let y = 0; y < GRID_H; y++) {
-    for (let x = 0; x < GRID_W; x++) {
-      if (grid[y][x] !== 2) continue;
-      const cx = x * CELL_PX + CELL_PX/2;
-      const cy = y * CELL_H_PX() + CELL_H_PX()/2;
-      const r = Math.min(CELL_PX, CELL_H_PX()) * 0.38;
-      ctx.strokeStyle = 'rgba(80,240,120,0.9)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.stroke();
-    }
+  // 背景图（如果有）
+  if (backgroundImage) {
+    ctx.globalAlpha = bgOpacity;
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
   }
 
   // 网格线
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
-  ctx.lineWidth = 0.5;
-  for (let x = 0; x <= GRID_W; x++) {
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= gridWidth; x++) {
     ctx.beginPath();
-    ctx.moveTo(x * CELL_PX, 0);
-    ctx.lineTo(x * CELL_PX, CH);
+    ctx.moveTo(x * tileSize, 0);
+    ctx.lineTo(x * tileSize, canvas.height);
     ctx.stroke();
   }
-  for (let y = 0; y <= GRID_H; y++) {
+  for (let y = 0; y <= gridHeight; y++) {
     ctx.beginPath();
-    ctx.moveTo(0, y * CELL_H_PX());
-    ctx.lineTo(CW, y * CELL_H_PX());
+    ctx.moveTo(0, y * tileSize);
+    ctx.lineTo(canvas.width, y * tileSize);
     ctx.stroke();
   }
 
-  // 悬停高亮
-  if (hoverCell) {
-    const [hx, hy] = hoverCell;
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(hx * CELL_PX + 1, hy * CELL_H_PX() + 1, CELL_PX - 2, CELL_H_PX() - 2);
-  }
-
-  // 更新计数
-  let pathCnt = 0, towerCnt = 0;
-  for (let y = 0; y < GRID_H; y++)
-    for (let x = 0; x < GRID_W; x++) {
-      if (grid[y][x] === 1) pathCnt++;
-      else if (grid[y][x] === 2) towerCnt++;
+  // 路径
+  if (pathNodes.length > 0) {
+    // 路径连线
+    ctx.strokeStyle = '#4a2d2d';
+    ctx.lineWidth = tileSize * 0.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pathNodes[0].x * tileSize + tileSize/2, pathNodes[0].y * tileSize + tileSize/2);
+    for (let i = 1; i < pathNodes.length; i++) {
+      ctx.lineTo(pathNodes[i].x * tileSize + tileSize/2, pathNodes[i].y * tileSize + tileSize/2);
     }
-  document.getElementById('path-count').textContent = pathCnt;
-  document.getElementById('tower-count').textContent = towerCnt;
+    ctx.stroke();
+
+    // 路径格子
+    pathNodes.forEach((node, i) => {
+      const x = node.x * tileSize;
+      const y = node.y * tileSize;
+      const ratio = i / Math.max(pathNodes.length - 1, 1);
+      let color;
+      if (ratio < 0.3) color = '#2d4a3e';
+      else if (ratio < 0.7) color = '#2a303b';
+      else color = '#4a2d2d';
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, tileSize, tileSize);
+    });
+
+    // 节点标记
+    pathNodes.forEach((node, i) => {
+      const cx = node.x * tileSize + tileSize/2;
+      const cy = node.y * tileSize + tileSize/2;
+      
+      ctx.fillStyle = i === 0 ? '#3ecf8e' : (i === pathNodes.length - 1 ? '#ff6b6b' : '#a78bfa');
+      ctx.beginPath();
+      ctx.arc(cx, cy, tileSize * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 序号
+      ctx.fillStyle = '#fff';
+      ctx.font = `${Math.floor(tileSize * 0.4)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(i.toString(), cx, cy);
+    });
+  }
+
+  // 塔位
+  towerSpots.forEach(spot => {
+    const cx = spot.x * tileSize + tileSize/2;
+    const cy = spot.y * tileSize + tileSize/2;
+    
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, tileSize * 0.4, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, tileSize * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }
 
-// 因 canvas 是正方格子（宽=高=CELL_PX），但 grid 是 32×18，
-// 垂直方向需要按比例：CH/GRID_H
-function CELL_H_PX() { return CH / GRID_H; } // = 40，与 CELL_PX 相同，so each cell is 40x40
-
-// ── 鼠标事件 ──────────────────────────────────────────────────────────────────
+// ── 交互 ─────────────────────────────────────────────────────────────────────
 function getCellFromEvent(e) {
   const rect = canvas.getBoundingClientRect();
-  const scaleX = CW / rect.width;
-  const scaleY = CH / rect.height;
-  const px = (e.clientX - rect.left) * scaleX;
-  const py = (e.clientY - rect.top) * scaleY;
-  const x = Math.floor(px / CELL_PX);
-  const y = Math.floor(py / (CH / GRID_H));
-  if (x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return null;
-  return [x, y];
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cellX = Math.floor(x / tileSize);
+  const cellY = Math.floor(y / tileSize);
+  if (cellX < 0 || cellX >= gridWidth || cellY < 0 || cellY >= gridHeight) return null;
+  return { x: cellX, y: cellY };
 }
 
-function paintCell(e) {
+function pushHistory() {
+  history.push({
+    pathNodes: JSON.parse(JSON.stringify(pathNodes)),
+    towerSpots: JSON.parse(JSON.stringify(towerSpots)),
+  });
+  if (history.length > 50) history.shift();
+}
+
+function undo() {
+  const prev = history.pop();
+  if (prev) {
+    pathNodes = prev.pathNodes;
+    towerSpots = prev.towerSpots;
+    render();
+    updatePathNodeList();
+    updateTowerCount();
+  }
+}
+
+canvas.addEventListener('mousedown', (e) => {
   const cell = getCellFromEvent(e);
   if (!cell) return;
-  const [x, y] = cell;
-  grid[y][x] = brush;
-  render();
-}
 
-canvas.addEventListener('mousedown', e => {
-  if (e.button === 2) return; // 右键单独处理
-  isDrawing = true;
-  paintCell(e);
-});
-canvas.addEventListener('mousemove', e => {
-  const cell = getCellFromEvent(e);
-  hoverCell = cell;
-  if (cell) {
-    document.getElementById('coord-display').textContent = `x:${cell[0]} y:${cell[1]}`;
+  pushHistory();
+
+  if (e.button === 0) { // 左键
+    if (currentTool === 'path') {
+      pathNodes.push(cell);
+      updatePathNodeList();
+    } else if (currentTool === 'tower') {
+      const key = `${cell.x},${cell.y}`;
+      if (!towerSpots.some(s => `${s.x},${s.y}` === key)) {
+        towerSpots.push(cell);
+        updateTowerCount();
+      }
+    } else if (currentTool === 'erase') {
+      // 擦除路径节点
+      const idx = pathNodes.findIndex(n => n.x === cell.x && n.y === cell.y);
+      if (idx >= 0) {
+        pathNodes.splice(idx, 1);
+        updatePathNodeList();
+      }
+      // 擦除塔位
+      const tIdx = towerSpots.findIndex(s => s.x === cell.x && s.y === cell.y);
+      if (tIdx >= 0) {
+        towerSpots.splice(tIdx, 1);
+        updateTowerCount();
+      }
+    }
+  } else if (e.button === 2) { // 右键
+    if (currentTool === 'path') {
+      if (pathNodes.length > 0) pathNodes.pop();
+      updatePathNodeList();
+    } else if (currentTool === 'tower') {
+      const key = `${cell.x},${cell.y}`;
+      towerSpots = towerSpots.filter(s => `${s.x},${s.y}` !== key);
+      updateTowerCount();
+    }
   }
-  if (isDrawing) paintCell(e);
-  else render();
-});
-canvas.addEventListener('mouseup', () => { isDrawing = false; });
-canvas.addEventListener('mouseleave', () => {
-  isDrawing = false;
-  hoverCell = null;
-  document.getElementById('coord-display').textContent = 'x:- y:-';
+
   render();
 });
-// 右键擦除
-canvas.addEventListener('contextmenu', e => {
-  e.preventDefault();
-  const cell = getCellFromEvent(e);
-  if (cell) { grid[cell[1]][cell[0]] = 0; render(); }
+
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'z') {
+    e.preventDefault();
+    undo();
+  }
 });
 
-// ── 笔刷切换 ─────────────────────────────────────────────────────────────────
-document.querySelectorAll('.brush-btn').forEach(btn => {
+// ── 工具切换 ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
   btn.addEventListener('click', () => {
-    brush = parseInt(btn.dataset.brush);
-    document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    currentTool = btn.dataset.tool;
   });
 });
 
-// 键盘快捷键
-window.addEventListener('keydown', e => {
-  if (e.key === '1') document.querySelector('[data-brush="1"]').click();
-  if (e.key === '2') document.querySelector('[data-brush="2"]').click();
-  if (e.key === 'e' || e.key === 'E' || e.key === '0') document.querySelector('[data-brush="0"]').click();
+// ── 网格设置 ─────────────────────────────────────────────────────────────────
+document.getElementById('apply-grid').addEventListener('click', () => {
+  pushHistory();
+  gridWidth = parseInt(document.getElementById('grid-width').value) || 32;
+  gridHeight = parseInt(document.getElementById('grid-height').value) || 18;
+  resizeCanvas();
 });
 
-// ── 清空 ──────────────────────────────────────────────────────────────────────
-document.getElementById('clear-btn').addEventListener('click', () => {
-  if (!confirm('清空所有格子？')) return;
-  grid = newGrid();
+// ── 背景图设置 ───────────────────────────────────────────────────────────────
+document.getElementById('bg-select').addEventListener('change', (e) => {
+  const url = e.target.value;
+  if (!url) {
+    backgroundImage = null;
+    render();
+    return;
+  }
+  
+  const img = new Image();
+  img.onload = () => {
+    backgroundImage = img;
+    render();
+  };
+  img.src = url;
+});
+
+document.getElementById('bg-opacity').addEventListener('change', (e) => {
+  bgOpacity = e.target.checked ? 0.5 : 1.0;
   render();
 });
 
-// ── 生成 JSON ─────────────────────────────────────────────────────────────────
-document.getElementById('export-btn').addEventListener('click', () => {
-  const traced = tracePathCells();
-  const waypoints = toWaypoints(traced);
+// ── 撤销/清空 ────────────────────────────────────────────────────────────────
+document.getElementById('undo-btn').addEventListener('click', undo);
 
-  const towerSpots = [];
-  for (let y = 0; y < GRID_H; y++)
-    for (let x = 0; x < GRID_W; x++)
-      if (grid[y][x] === 2) towerSpots.push({ x, y });
-
-  const levelId = currentLevel?.id ?? '(未选择关卡)';
-
-  const output = {
-    levelId,
-    pathNodes: waypoints.map(([x, y]) => ({ x, y })),
-    towerSpots,
-  };
-
-  const json = JSON.stringify(output, null, 2);
-  document.getElementById('json-output').value = json;
+document.getElementById('clear-btn').addEventListener('click', () => {
+  pushHistory();
+  pathNodes = [];
+  towerSpots = [];
+  render();
+  updatePathNodeList();
+  updateTowerCount();
 });
 
-// ── 复制 ──────────────────────────────────────────────────────────────────────
-document.getElementById('copy-btn').addEventListener('click', async () => {
-  const text = document.getElementById('json-output').value;
-  if (!text) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    const status = document.getElementById('copy-status');
-    status.textContent = '✅ 已复制！';
-    setTimeout(() => { status.textContent = ''; }, 2000);
-  } catch {
-    document.getElementById('json-output').select();
-    document.execCommand('copy');
+// ── 关卡选择器填充 ───────────────────────────────────────────────────────────
+const levelSelect = document.getElementById('level-select');
+levelSelect.innerHTML = '<option value="">-- 选择关卡 --</option>';
+campaigns.forEach((campaign, ci) => {
+  campaign.levels.forEach((level, li) => {
+    const opt = document.createElement('option');
+    opt.value = `${ci}-${li}`;
+    opt.textContent = `${campaign.name} - ${level.name} (${level.id})`;
+    levelSelect.appendChild(opt);
+  });
+});
+
+// ── 加载关卡 ─────────────────────────────────────────────────────────────────
+document.getElementById('load-btn').addEventListener('click', () => {
+  const value = levelSelect.value;
+  if (!value) {
+    alert('请先选择关卡');
+    return;
   }
+  
+  const [ci, li] = value.split('-').map(Number);
+  const level = campaigns[ci].levels[li];
+  
+  pushHistory();
+  
+  // 应用关卡配置
+  const config = getGridConfig(level);
+  gridWidth = config.gridWidth;
+  gridHeight = config.gridHeight;
+  tileSize = config.tileSize;
+  
+  document.getElementById('grid-width').value = gridWidth;
+  document.getElementById('grid-height').value = gridHeight;
+  
+  // 加载路径和塔位
+  pathNodes = level.pathNodes ? [...level.pathNodes] : [];
+  towerSpots = level.towerSpots ? [...level.towerSpots] : [];
+  
+  resizeCanvas();
+  updatePathNodeList();
+  updateTowerCount();
+  
+  // 自动选择对应章节背景
+  const bgSelect = document.getElementById('bg-select');
+  bgSelect.value = `assets/bg-chapter-${campaigns[ci].id}.png`;
+  bgSelect.dispatchEvent(new Event('change'));
 });
 
-// ── 初始渲染 ─────────────────────────────────────────────────────────────────
-render();
+// ── 路径节点列表 ─────────────────────────────────────────────────────────────
+function updatePathNodeList() {
+  const list = document.getElementById('path-node-list');
+  list.innerHTML = '';
+  pathNodes.forEach((node, i) => {
+    const item = document.createElement('div');
+    item.className = 'path-node-item';
+    item.innerHTML = `
+      <span class="node-coords">#${i}: (${node.x}, ${node.y})</span>
+      <div class="node-actions">
+        <button class="node-action-btn" data-idx="${i}" title="删除">🗑</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+
+  list.querySelectorAll('.node-action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      pushHistory();
+      const idx = parseInt(btn.dataset.idx);
+      pathNodes.splice(idx, 1);
+      render();
+      updatePathNodeList();
+    });
+  });
+}
+
+function updateTowerCount() {
+  document.getElementById('tower-count').textContent = `共 ${towerSpots.length} 个塔位`;
+}
+
+// ── 导出 ─────────────────────────────────────────────────────────────────────
+function generateExport() {
+  return {
+    tileSize,
+    gridWidth,
+    gridHeight,
+    pathNodes: pathNodes.map(n => ({ x: n.x, y: n.y })),
+    towerSpots: towerSpots.map(s => ({ x: s.x, y: s.y })),
+  };
+}
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  const output = generateExport();
+  document.getElementById('export-output').textContent = JSON.stringify(output, null, 2);
+});
+
+// ── 保存为文件 ───────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', () => {
+  const data = generateExport();
+  const levelName = levelSelect.options[levelSelect.selectedIndex]?.text || 'custom-level';
+  const safeName = levelName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_').slice(0, 50);
+  
+  // 生成说明文档
+  const instructions = `
+═══════════════════════════════════════════════════════════
+  魔道塔防 - 关卡配置保存说明
+═══════════════════════════════════════════════════════════
+
+📁 文件应放置位置：
+
+  repo/src/levels/
+
+📝 使用方式：
+
+  1. 将下载的 .js 文件重命名为对应关卡名
+     例如：level1-1.js (第 1 章第 1 关)
+
+  2. 在 repo/src/levels/campaigns.js 中引用该文件：
+     
+     import { levelConfig as level1_1 } from './level1-1.js';
+
+  3. 在对应章节的 levels 数组中使用：
+     
+     levels: [
+       {
+         ...level1_1,
+         id: "1-1",
+         name: "自定义关卡名",
+       },
+       // ...
+     ]
+
+  或者直接复制 levelConfig 中的内容到 campaigns.js 对应关卡配置中。
+
+═══════════════════════════════════════════════════════════
+  项目资源结构：
+
+  repo/
+  ├── assets/              # 图片资源
+  │   ├── bg-chapter-1.png
+  │   ├── enemy-soldier-walk.png
+  │   └── ...
+  └── src/
+      └── levels/          # 关卡配置 ← 放这里
+          ├── campaigns.js
+          ├── level1.js
+          └── ...
+═══════════════════════════════════════════════════════════
+`.trim();
+
+  const fileContent = `// 魔道塔防 - 关卡配置
+// 关卡：${levelName}
+// 生成时间：${new Date().toLocaleString('zh-CN')}
+//
+${instructions.split('\n').map(line => '// ' + line).join('\n')}
+
+export const levelConfig = ${JSON.stringify(data, null, 2)};
+`;
+  
+  const blob = new Blob([fileContent], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeName}.js`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  // 显示提示
+  alert(`✅ 文件已下载！
+
+📁 请将其放入：repo/src/levels/
+
+📖 文件内包含详细使用说明，查看注释了解如何集成到 campaigns.js`);
+});
+
+// ── 初始化 ───────────────────────────────────────────────────────────────────
+resizeCanvas();
+updatePathNodeList();
+updateTowerCount();
 </script>
+
 </body>
 </html>
